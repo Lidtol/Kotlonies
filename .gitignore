@@ -1,0 +1,20 @@
+# Variables de entorno y secretos
+.env
+!.env.example
+
+# Java y Maven
+target/
+*.class
+*.log
+
+# Node y Angular
+node_modules/
+dist/
+.angular/
+
+# IDEs y sistema
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
