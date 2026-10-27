@@ -1,8 +1,12 @@
 
 package com.kotlonies_api.controller;
 
+import com.kotlonies_api.dto.GatoRequest;
 import com.kotlonies_api.model.Gato;
 import com.kotlonies_api.service.GatoService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +34,10 @@ public class GatoController {
     }
 
     @PostMapping
-    public ResponseEntity<Gato> create(@RequestBody Gato gato) {
+    public ResponseEntity<Gato> create(
+            @Valid @RequestBody GatoRequest request
+    ) {
+        Gato gato = convertirAGato(request);
         Gato creado = service.create(gato);
 
         return ResponseEntity
@@ -41,8 +48,10 @@ public class GatoController {
     @PutMapping("/{id}")
     public ResponseEntity<Gato> update(
             @PathVariable Long id,
-            @RequestBody Gato gato
+            @Valid @RequestBody GatoRequest request
     ) {
+        Gato gato = convertirAGato(request);
+
         return ResponseEntity.ok(service.update(id, gato));
     }
 
@@ -50,5 +59,20 @@ public class GatoController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private Gato convertirAGato(GatoRequest request) {
+        return new Gato(
+                null,
+                request.getNombre(),
+                request.getSexo(),
+                request.getFechaNacimiento(),
+                request.getColor(),
+                request.getEstado(),
+                request.getEsterilizado(),
+                request.getIdentificado(),
+                request.getColoniaId(),
+                request.getObservaciones()
+        );
     }
 }
