@@ -1,0 +1,294 @@
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" href="#" (click)="$event.preventDefault(); selectSection('Inicio')">
+      <span class="brand-mark">♡</span>
+      <span>Kotlonies</span>
+
+      miau
+    </a>
+
+    <div class="sidebar-caption">MENÚ PRINCIPAL</div>
+    <nav class="navigation" aria-label="Navegación principal">
+      <button
+        *ngFor="let item of navigation"
+        type="button"
+        class="nav-item"
+        [class.active]="activeSection === item.label"
+        [attr.aria-current]="activeSection === item.label ? 'page' : null"
+        (click)="selectSection(item.label)">
+        <span class="nav-icon" aria-hidden="true">{{ item.icon }}</span>
+        <span>{{ item.label }}</span>
+        <span *ngIf="item.label === 'Colonias'" class="nav-count">12</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-help">
+      <div class="help-icon">♡</div>
+      <strong>Pequeños cuidados,<br>grandes cambios.</strong>
+      <p>Cada gesto ayuda a mejorar la vida de los gatos comunitarios.</p>
+    </div>
+
+    <button class="profile-mini" type="button" (click)="selectSection('Perfil')">
+      <span class="avatar">L</span>
+      <span class="profile-text"><strong>Lidia</strong><small>Administradora</small></span>
+      <span class="profile-chevron">⌄</span>
+    </button>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div class="breadcrumb"><span>Espacio de trabajo</span><span class="crumb-separator">/</span><strong>{{ activeSection }}</strong></div>
+      <div class="topbar-actions">
+        <span class="today-label">Martes, 27 de octubre</span>
+        <button class="icon-button notification" type="button" aria-label="Notificaciones">♧<i></i></button>
+        <span class="avatar top-avatar">L</span>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <section class="welcome-row">
+        <div>
+          <p class="eyebrow">TU ESPACIO DE CUIDADO FELINO</p>
+          <h1 *ngIf="activeSection === 'Inicio'">¡Hola, Lidia! <span class="wave">✦</span></h1>
+          <h1 *ngIf="activeSection !== 'Inicio'">{{ activeSection }}</h1>
+          <p class="page-subtitle">{{ subtitles[activeSection] }}</p>
+        </div>
+        <button class="primary-button" type="button" (click)="selectSection('Colonias')"><span>＋</span> Nueva colonia</button>
+      </section>
+
+      <section class="hero-card" *ngIf="activeSection === 'Inicio'">
+        <div class="hero-copy">
+          <span class="hero-tag"><span class="status-dot"></span> JUNTOS POR ELLOS</span>
+          <h2>Un lugar mejor<br>para cada <em>patita.</em></h2>
+          <p>Organiza colonias, registra sus gatos y coordina a las personas que hacen posible su cuidado.</p>
+          <button class="hero-button" type="button" (click)="selectSection('Colonias')">Explorar mis colonias <span>→</span></button>
+        </div>
+        <div class="hero-art" role="img" aria-label="Gato atigrado descansando"></div>
+        <div class="hero-decoration decoration-one"></div>
+        <div class="hero-decoration decoration-two"></div>
+      </section>
+
+      <section class="stats-grid" aria-label="Resumen" *ngIf="activeSection === 'Inicio'">
+        <article class="stat-card" *ngFor="let stat of stats">
+          <div class="stat-topline">
+            <span class="stat-label">{{ stat.label }}</span>
+            <span class="stat-icon" [ngClass]="stat.tone">{{ stat.icon }}</span>
+          </div>
+          <div class="stat-value">{{ stat.value }}</div>
+          <div class="stat-foot"><span class="trend">↗</span> <span>Datos de demostración</span></div>
+        </article>
+      </section>
+
+      <section class="content-grid" *ngIf="activeSection === 'Inicio'">
+        <div class="panel colonies-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Colonias destacadas</h2>
+              <p>Un vistazo rápido a tus espacios de cuidado.</p>
+            </div>
+            <button class="text-button" type="button" (click)="selectSection('Colonias')">Ver todas <span>→</span></button>
+          </div>
+
+          <label class="search-box">
+            <span aria-hidden="true">⌕</span>
+            <input type="search" placeholder="Buscar una colonia..." [(ngModel)]="searchTerm" />
+          </label>
+
+          <div class="colony-list">
+            <article class="colony-card" *ngFor="let colony of filteredColonies | slice:0:3">
+              <img [src]="colony.image" [alt]="'Gato de ' + colony.name" />
+              <div class="colony-info">
+                <div class="colony-title-row">
+                  <h3>{{ colony.name }}</h3>
+                  <span class="status-pill" [class.pending]="colony.status === 'Pendiente'">{{ colony.status }}</span>
+                </div>
+                <p class="location"><span>⌖</span> {{ colony.location }}</p>
+                <div class="colony-meta">
+                  <span><b>{{ colony.cats }}</b> gatos</span>
+                  <span class="meta-divider"></span>
+                  <span><b>{{ colony.volunteers }}</b> voluntarios/as</span>
+                </div>
+              </div>
+              <button class="arrow-button" type="button" [attr.aria-label]="'Ver ' + colony.name" (click)="selectSection('Colonias')">→</button>
+            </article>
+            <div class="empty-state" *ngIf="filteredColonies.length === 0">
+              No se han encontrado colonias con ese nombre.
+            </div>
+          </div>
+        </div>
+
+        <aside class="panel activity-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Actividad reciente</h2>
+              <p>Últimos movimientos registrados.</p>
+            </div>
+            <button class="more-button" type="button" aria-label="Más opciones">···</button>
+          </div>
+          <div class="activity-list">
+            <article class="activity-item">
+              <span class="activity-symbol pink-bg">♡</span>
+              <div><p><strong>Luna</strong> tiene una nueva ficha</p><small>Colonia Centro · Hace 20 min</small></div>
+            </article>
+            <article class="activity-item">
+              <span class="activity-symbol violet-bg">♙</span>
+              <div><p><strong>Ana García</strong> se ha unido</p><small>Voluntariado · Hace 2 h</small></div>
+            </article>
+            <article class="activity-item">
+              <span class="activity-symbol green-bg">✓</span>
+              <div><p>Visita completada</p><small>Colonia Playa · Ayer</small></div>
+            </article>
+          </div>
+          <button class="activity-link" type="button" (click)="selectSection('Calendario')">Ver actividad <span>→</span></button>
+        </aside>
+      </section>
+
+      <!-- COLONIAS -->
+      <section *ngIf="activeSection === 'Colonias'" aria-label="Listado de colonias">
+        <div class="toolbar">
+          <label class="search-box">
+            <span aria-hidden="true">⌕</span>
+            <input type="search" placeholder="Buscar por nombre o zona..." aria-label="Buscar colonias" [(ngModel)]="searchTerm" />
+          </label>
+          <p class="result-count" aria-live="polite">{{ filteredColonies.length }} colonias</p>
+        </div>
+        <div class="tile-grid">
+          <article class="tile" *ngFor="let colony of filteredColonies">
+            <img [src]="colony.image" [alt]="'Gato de ' + colony.name" />
+            <div class="tile-body">
+              <div class="colony-title-row">
+                <h3>{{ colony.name }}</h3>
+                <span class="status-pill" [class.pending]="colony.status === 'Pendiente'">{{ colony.status }}</span>
+              </div>
+              <p class="location"><span>⌖</span> {{ colony.location }}</p>
+              <div class="colony-meta">
+                <span><b>{{ colony.cats }}</b> gatos</span>
+                <span class="meta-divider"></span>
+                <span><b>{{ colony.volunteers }}</b> voluntarios/as</span>
+              </div>
+            </div>
+          </article>
+        </div>
+        <div class="empty-state" *ngIf="filteredColonies.length === 0">No se han encontrado colonias con ese nombre.</div>
+      </section>
+
+      <!-- GATOS -->
+      <section *ngIf="activeSection === 'Gatos'" aria-label="Listado de gatos">
+        <div class="toolbar">
+          <label class="search-box">
+            <span aria-hidden="true">⌕</span>
+            <input type="search" placeholder="Buscar por nombre, código o colonia..." aria-label="Buscar gatos" [(ngModel)]="searchTerm" />
+          </label>
+          <div class="chips" role="group" aria-label="Filtrar por esterilización">
+            <button *ngFor="let f of catFilters" type="button" class="chip" [class.active]="catFilter === f" [attr.aria-pressed]="catFilter === f" (click)="catFilter = f">{{ f }}</button>
+          </div>
+          <p class="result-count" aria-live="polite">{{ filteredCats.length }} gatos</p>
+        </div>
+        <div class="panel table-panel">
+          <div class="table-scroll">
+            <table class="data-table">
+              <caption class="sr-only">Listado de gatos registrados</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Gato</th>
+                  <th scope="col">Colonia</th>
+                  <th scope="col">Rasgos</th>
+                  <th scope="col">Esterilización</th>
+                  <th scope="col">Último veterinario</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let cat of filteredCats">
+                  <th scope="row">
+                    <div class="cell-cat">
+                      <span class="activity-symbol pink-bg" aria-hidden="true">{{ (cat.name ?? '?').charAt(0) }}</span>
+                      <span><strong>{{ cat.name ?? 'Sin nombre' }}</strong><small>{{ cat.code }}</small></span>
+                    </div>
+                  </th>
+                  <td>{{ cat.colony }}</td>
+                  <td>{{ cat.trait }}</td>
+                  <td><span class="status-pill" [class.pending]="!cat.sterilized">{{ cat.sterilized ? 'Esterilizado' : 'Pendiente' }}</span></td>
+                  <td>{{ cat.lastVet }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="empty-state" *ngIf="filteredCats.length === 0">No se han encontrado gatos con esos criterios.</div>
+        </div>
+      </section>
+
+      <!-- VOLUNTARIADO -->
+      <section class="people-grid" *ngIf="activeSection === 'Voluntariado'" aria-label="Personas voluntarias">
+        <article class="person-card" *ngFor="let person of volunteers">
+          <span class="avatar" aria-hidden="true">{{ person.name.charAt(0) }}</span>
+          <h3>{{ person.name }}</h3>
+          <span class="role-pill" [ngClass]="person.roleClass">{{ person.role }}</span>
+          <p>{{ person.colony }}</p>
+        </article>
+      </section>
+
+      <!-- CALENDARIO -->
+      <section class="calendar-layout" *ngIf="activeSection === 'Calendario'">
+        <div class="panel">
+          <div class="panel-heading">
+            <div><h2>{{ calendarMonth }}</h2><p>Tareas previstas por día.</p></div>
+          </div>
+          <table class="calendar">
+            <thead>
+              <tr><th scope="col" *ngFor="let d of weekDays">{{ d }}</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let week of calendarWeeks">
+                <td *ngFor="let day of week" [class.empty]="day === null" [class.today]="day === todayDay" [attr.aria-current]="day === todayDay ? 'date' : null">
+                  <ng-container *ngIf="day !== null">
+                    <span class="day-number">{{ day }}</span>
+                    <span class="event-chip" *ngFor="let e of eventsOn(day)" [ngClass]="e.tone + '-bg'">{{ e.title }}</span>
+                  </ng-container>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <aside class="panel">
+          <div class="panel-heading">
+            <div><h2>Próximas tareas</h2><p>Lo que viene en los próximos días.</p></div>
+          </div>
+          <div class="activity-list">
+            <article class="activity-item" *ngFor="let e of upcomingEvents">
+              <span class="activity-symbol" [ngClass]="e.tone + '-bg'">{{ e.day }}</span>
+              <div><p><strong>{{ e.title }}</strong></p><small>{{ e.colony }} · {{ e.day }} de octubre</small></div>
+            </article>
+          </div>
+        </aside>
+      </section>
+
+      <!-- PERFIL -->
+      <section class="profile-layout" *ngIf="activeSection === 'Perfil'">
+        <div class="panel profile-card">
+          <span class="avatar" aria-hidden="true">L</span>
+          <h2>Lidia</h2>
+          <span class="role-pill admin">Administradora</span>
+          <dl class="detail-list">
+            <div><dt>Correo</dt><dd>lidia&#64;example.com</dd></div>
+            <div><dt>Colonias</dt><dd>Todas</dd></div>
+            <div><dt>Datos</dt><dd>De demostración</dd></div>
+          </dl>
+        </div>
+        <div class="panel">
+          <div class="panel-heading">
+            <div><h2>Roles previstos</h2><p>Propuesta provisional, pendiente de definir en el diseño.</p></div>
+          </div>
+          <ul class="role-list">
+            <li *ngFor="let role of roles"><strong>{{ role.name }}</strong>{{ role.description }}</li>
+          </ul>
+        </div>
+      </section>
+
+      <footer class="page-footer">
+        <span>© 2026 Kotlonies</span>
+        <span>Hecho con cuidado <span class="footer-heart">♥</span> para las colonias felinas</span>
+        <span class="prototype-label">PROTOTIPO · DATOS FICTICIOS</span>
+      </footer>
+    </div>
+  </main>
+</div>
