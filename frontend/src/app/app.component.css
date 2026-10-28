@@ -175,3 +175,81 @@ h1 { margin-bottom: 7px; color: #29243b; font-family: 'Manrope', sans-serif; fon
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+/* ===== Secciones: Colonias, Gatos, Voluntariado, Calendario, Perfil ===== */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin-bottom: 18px; }
+.toolbar .search-box { flex: 1 1 260px; max-width: 380px; margin: 0; background: #fff; }
+.toolbar .search-box input { font-size: 12px; }
+.result-count { margin: 0 0 0 auto; color: #9992a9; font-size: 11px; }
+.chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.chip { padding: 8px 13px; border: 1px solid #eeebf4; border-radius: 20px; color: #716a89; background: #fff; font-size: 11px; font-weight: 600; transition: border-color .18s; }
+.chip:hover { border-color: #e3c8eb; }
+.chip.active { border-color: transparent; color: #fff; background: linear-gradient(100deg, #a65bb7, #e16db2); }
+
+.tile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.tile { overflow: hidden; border: 1px solid #eeebf4; border-radius: 16px; background: #fff; box-shadow: 0 4px 15px #2b204906; transition: transform .18s, border-color .18s; }
+.tile:hover { border-color: #e3c8eb; transform: translateY(-2px); }
+.tile > img { display: block; width: 100%; height: 150px; object-fit: cover; }
+.tile-body { padding: 15px 16px 16px; }
+.tile .colony-title-row h3 { font-size: 13px; }
+.tile .status-pill { font-size: 10px; }
+.tile .location { margin: 8px 0 12px; font-size: 11px; }
+.tile .colony-meta { font-size: 11px; }
+
+.table-panel { padding: 0; overflow: hidden; }
+.table-scroll { overflow-x: auto; }
+.data-table { width: 100%; min-width: 680px; border-collapse: collapse; font-size: 11px; }
+.data-table th, .data-table td { padding: 13px 16px; border-bottom: 1px solid #f2eff6; color: #69627c; text-align: left; vertical-align: middle; }
+.data-table thead th { color: #8c869f; background: #fcfbfe; font-size: 10px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; }
+.data-table tbody th { font-weight: 400; }
+.data-table tbody tr:last-child > * { border-bottom: 0; }
+.data-table tbody tr:hover { background: #fcfaff; }
+.data-table .status-pill { font-size: 10px; white-space: nowrap; }
+.cell-cat { display: flex; align-items: center; gap: 11px; }
+.cell-cat strong { display: block; color: #39334b; font-size: 12px; }
+.cell-cat small { color: #aaa4b8; font-size: 10px; }
+
+.people-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+.person-card { display: flex; flex-direction: column; align-items: center; padding: 24px 18px; border: 1px solid #eeebf4; border-radius: 16px; background: #fff; box-shadow: 0 4px 15px #2b204906; text-align: center; }
+.person-card .avatar { width: 56px; height: 56px; margin-bottom: 12px; font-size: 20px; }
+.person-card h3 { margin: 0; color: #39334b; font-family: 'Manrope', sans-serif; font-size: 14px; }
+.person-card p { margin: 0; color: #9992a9; font-size: 11px; }
+.role-pill { display: inline-block; margin: 9px 0 8px; padding: 4px 9px; border-radius: 6px; color: #8a5fc0; background: #f1eaff; font-size: 10px; font-weight: 700; }
+.role-pill.admin { color: #c1558f; background: #ffebf5; }
+.role-pill.viewer { color: #5d83bd; background: #eaf2ff; }
+
+.calendar-layout, .profile-layout { display: grid; gap: 20px; }
+.calendar-layout { grid-template-columns: minmax(0, 1.7fr) minmax(250px, .8fr); }
+.profile-layout { grid-template-columns: minmax(260px, .8fr) minmax(0, 1.5fr); align-items: start; }
+.calendar { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 4px; }
+.calendar th { padding: 6px 0; color: #8c869f; font-size: 10px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; }
+.calendar td { height: 88px; padding: 7px; border: 1px solid #f0edf5; border-radius: 10px; color: #69627c; font-size: 11px; vertical-align: top; }
+.calendar td.empty { border-color: transparent; }
+.calendar td.today { border-color: #d7b1e0; background: #fbf4fd; }
+.day-number { display: inline-grid; place-items: center; min-width: 22px; height: 22px; border-radius: 50%; color: #5d566f; font-weight: 700; }
+.today .day-number { color: #fff; background: #e16db2; }
+.event-chip { display: block; margin-top: 4px; padding: 3px 6px; overflow: hidden; border-radius: 6px; font-size: 9px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+
+.profile-card { text-align: center; }
+.profile-card .avatar { width: 76px; height: 76px; margin: 0 auto 14px; font-size: 28px; }
+.profile-card h2 { margin-bottom: 4px; color: #39334b; font-family: 'Manrope', sans-serif; font-size: 20px; }
+.detail-list { margin: 14px 0 0; text-align: left; }
+.detail-list div { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f2eff6; font-size: 11px; }
+.detail-list div:last-child { border-bottom: 0; }
+.detail-list dt { color: #9992a9; }
+.detail-list dd { margin: 0; color: #39334b; font-weight: 600; }
+.role-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.role-list li { padding: 13px 15px; border: 1px solid #f0edf5; border-radius: 12px; color: #69627c; font-size: 11px; line-height: 1.5; }
+.role-list strong { display: block; color: #39334b; font-size: 12px; }
+
+@media (max-width: 1100px) {
+  .calendar-layout, .profile-layout { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 700px) {
+  .toolbar .search-box { max-width: none; }
+  .result-count { margin-left: 0; }
+  .calendar { border-spacing: 2px; }
+  .calendar td { height: 62px; padding: 4px; }
+  .event-chip { padding: 2px 3px; font-size: 8px; }
+}
