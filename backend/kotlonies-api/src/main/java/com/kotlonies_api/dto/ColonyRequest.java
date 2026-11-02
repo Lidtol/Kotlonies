@@ -3,20 +3,20 @@ package com.kotlonies_api.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record ColoniaRequest(
+public record ColonyRequest(
 
         @NotBlank(message = "El nombre es obligatorio")
         @Size(max = 100, message = "El nombre no puede superar los 100 caracteres")
-        String nombre,
+        String name,
 
         @Size(max = 500, message = "La descripción no puede superar los 500 caracteres")
-        String descripcion,
+        String description,
 
         @NotBlank(message = "La ubicación es obligatoria")
         @Size(max = 200, message = "La ubicación no puede superar los 200 caracteres")
-        String ubicacion,
+        String location,
 
-        Boolean activa
+        Boolean active
 
 ) {
 }
