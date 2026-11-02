@@ -1,10 +1,14 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LoginComponent } from './features/login/login.component';
+import { AuthService } from './core/auth.service';
 
 type CatFilter = 'Todos' | 'Esterilizados' | 'Pendientes';
 
 type Section = 'Inicio' | 'Colonias' | 'Gatos' | 'Voluntariado' | 'Calendario' | 'Perfil';
+
+type View = 'Login' | Section;
 
 interface Cat {
   name: string | null;
@@ -27,13 +31,15 @@ interface Colony {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LoginComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent {
-  activeSection: Section = 'Inicio';
+  activeView: View = 'Login';
   searchTerm = '';
+
+  constructor(private readonly auth: AuthService) {}
 
   readonly navigation: { label: Section; icon: string }[] = [
     { label: 'Inicio', icon: '⌂' },
@@ -182,8 +188,20 @@ export class AppComponent {
   }
 
   selectSection(section: Section): void {
-    this.activeSection = section;
+    this.activeView = section;
     this.searchTerm = '';
     this.catFilter = 'Todos';
+  }
+
+  // Demostración del login: al autenticarse se entra en Inicio.
+  login(): void {
+    this.activeView = 'Inicio';
+  }
+
+  logout(): void {
+    this.auth.logout().subscribe({
+      complete: () => this.auth.usuario.set(null)
+    });
+    this.activeView = 'Login';
   }
 }

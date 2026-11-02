@@ -54,25 +54,19 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        
-        <!-- jpa   -->
-
+        <!-- Persistencia ORM (JPA/Hibernate) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
         <!-- MySQL -->
-
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
             <version>9.5.0</version>
             <scope>runtime</scope>
         </dependency>
-
-        
-
     </dependencies>
 
     

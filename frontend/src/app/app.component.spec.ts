@@ -19,6 +19,15 @@ describe('AppComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should start on the login view', () => {
+    expect(component.activeView).toBe('Login');
+  });
+
+  it('should enter the app after login', () => {
+    component.login();
+    expect(component.activeView).toBe('Inicio');
+  });
+
   it('should filter colonies by name', () => {
     component.searchTerm = 'playa';
     expect(component.filteredColonies.length).toBe(1);
@@ -27,6 +36,6 @@ describe('AppComponent', () => {
 
   it('should change the active section', () => {
     component.selectSection('Gatos');
-    expect(component.activeSection).toBe('Gatos');
+    expect(component.activeView).toBe('Gatos');
   });
 });

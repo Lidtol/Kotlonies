@@ -1,0 +1,97 @@
+<div class="login-shell">
+  <!-- Panel decorativo izquierdo (estilo hero-card) -->
+  <aside class="login-aside">
+    <a class="brand" routerLink="/app">
+      <span class="brand-mark">♡</span>
+      <span>Kotlonies</span>
+    </a>
+
+    <div class="aside-copy">
+      <span class="aside-tag"><span class="status-dot"></span> JUNTOS POR ELLOS</span>
+      <h2>Un lugar mejor<br>para cada <em>patita.</em></h2>
+      <p>Organiza colonias, registra sus gatos y coordina a las personas que hacen posible su cuidado.</p>
+    </div>
+
+    <div class="aside-art" role="img" aria-label="Gato atigrado descansando"></div>
+    <div class="aside-decoration decoration-one"></div>
+    <div class="aside-decoration decoration-two"></div>
+
+    <div class="aside-help">
+      <div class="help-icon">♡</div>
+      <strong>Pequeños cuidados,<br>grandes cambios.</strong>
+      <p>Cada gesto ayuda a mejorar la vida de los gatos comunitarios.</p>
+    </div>
+  </aside>
+
+  <!-- Formulario -->
+  <main class="login-main">
+    <div class="login-card">
+      <p class="eyebrow">ESPACIO DE CUIDADO FELINO</p>
+      <h1>¡Hola de nuevo! <span class="wave">✦</span></h1>
+      <p class="page-subtitle">Accede para continuar cuidando de tus colonias.</p>
+
+      <div class="alert" role="alert" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+      <form (ngSubmit)="submit()" novalidate>
+        <label class="field">
+          <span class="field-label">Correo electrónico</span>
+          <span class="field-box">
+            <span aria-hidden="true">◉</span>
+            <input
+              type="email"
+              name="email"
+              placeholder="lidia@example.com"
+              autocomplete="email"
+              [(ngModel)]="email"
+              required />
+          </span>
+          <small class="field-error" *ngIf="submitted && !email.trim()">Introduce tu correo electrónico.</small>
+        </label>
+
+        <label class="field">
+          <span class="field-label">Contraseña</span>
+          <span class="field-box">
+            <span aria-hidden="true">⚿</span>
+            <input
+              type="password"
+              name="password"
+              placeholder="Tu contraseña"
+              autocomplete="current-password"
+              [(ngModel)]="password"
+              required />
+          </span>
+          <small class="field-error" *ngIf="submitted && !password">Introduce tu contraseña.</small>
+        </label>
+
+        <div class="form-row">
+          <label class="checkbox">
+            <input type="checkbox" name="remember" [(ngModel)]="rememberMe" />
+            <span class="checkbox-box" aria-hidden="true">✓</span>
+            <span class="checkbox-text">Recordarme</span>
+          </label>
+          <button class="text-button" type="button">¿Olvidaste tu contraseña?</button>
+        </div>
+
+        <button class="primary-button submit-button" type="submit" [disabled]="loading">
+          <span class="submit-icon">♡</span> {{ loading ? 'Comprobando...' : 'Entrar' }}
+        </button>
+      </form>
+
+      <p class="signup-line">
+        ¿Todavía no tienes cuenta?
+        <button class="text-button" type="button">Solicita acceso</button>
+      </p>
+
+      <div class="demo-note">
+        <span class="demo-icon" aria-hidden="true">⌕</span>
+        <span>Demo: usuario <b>lidia@example.com</b> · contraseña <b>kotlonies2026</b></span>
+      </div>
+    </div>
+
+    <footer class="login-footer">
+      <span>© 2026 Kotlonies</span>
+      <span>Hecho con cuidado <span class="footer-heart">♥</span> para las colonias felinas</span>
+      <span class="prototype-label">PROTOTIPO · DATOS FICTICIOS</span>
+    </footer>
+  </main>
+</div>
