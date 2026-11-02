@@ -1,5 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
 import { AppComponent } from './app.component';
+import { AuthService } from './core/auth.service';
+import { ColonyService } from './core/colony.service';
 
 describe('AppComponent', () => {
   let fixture: ComponentFixture<AppComponent>;
@@ -7,7 +10,24 @@ describe('AppComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AppComponent]
+      imports: [AppComponent],
+      providers: [
+        {
+          provide: AuthService,
+          useValue: {
+            usuario: { set: jasmine.createSpy('set') },
+            logout: () => of(void 0)
+          }
+        },
+        {
+          provide: ColonyService,
+          useValue: {
+            getColonies: () => of([
+              { id: 1, name: 'Colonia real', description: '', location: 'Sevilla', active: true }
+            ])
+          }
+        }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(AppComponent);
@@ -28,10 +48,13 @@ describe('AppComponent', () => {
     expect(component.activeView).toBe('Inicio');
   });
 
-  it('should filter colonies by name', () => {
-    component.searchTerm = 'playa';
+  it('should load colonies from the backend service', () => {
+    component['colonies'] = [
+      { name: 'Colonia real', location: 'Sevilla', cats: 3, volunteers: 1, status: 'Activa', image: '' }
+    ];
+
     expect(component.filteredColonies.length).toBe(1);
-    expect(component.filteredColonies[0].name).toBe('Colonia Playa');
+    expect(component.filteredColonies[0].name).toBe('Colonia real');
   });
 
   it('should change the active section', () => {

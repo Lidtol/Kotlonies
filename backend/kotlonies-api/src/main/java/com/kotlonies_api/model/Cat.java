@@ -1,4 +1,3 @@
-
 package com.kotlonies_api.model;
 
 import jakarta.persistence.Column;

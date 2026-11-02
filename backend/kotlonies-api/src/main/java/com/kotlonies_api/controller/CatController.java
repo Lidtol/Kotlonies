@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/cats")
+@RequestMapping("/api/cats")
 public class CatController {
 
     private final CatService catService;

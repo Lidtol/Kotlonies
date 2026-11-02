@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LoginComponent } from './features/login/login.component';
 import { AuthService } from './core/auth.service';
+import { ColonyService } from './core/colony.service';
 
 type CatFilter = 'Todos' | 'Esterilizados' | 'Pendientes';
 
@@ -35,11 +36,22 @@ interface Colony {
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   activeView: View = 'Login';
   searchTerm = '';
 
-  constructor(private readonly auth: AuthService) {}
+  colonies: Colony[] = [];
+  cats: Cat[] = [];
+  volunteers: { name: string; role: string; roleClass: string; colony: string }[] = [];
+
+  constructor(
+    private readonly auth: AuthService,
+    private readonly colonyService: ColonyService
+  ) {}
+
+  ngOnInit(): void {
+    this.loadColonies();
+  }
 
   readonly navigation: { label: Section; icon: string }[] = [
     { label: 'Inicio', icon: '⌂' },
@@ -50,55 +62,14 @@ export class AppComponent {
     { label: 'Perfil', icon: '◉' }
   ];
 
-  readonly stats = [
-    { label: 'Colonias activas', value: '12', icon: '⌂', tone: 'violet' },
-    { label: 'Gatos registrados', value: '86', icon: '♧', tone: 'pink' },
-    { label: 'Personas voluntarias', value: '24', icon: '♙', tone: 'blue' },
-    { label: 'En adopción', value: '3', icon: '♡', tone: 'peach' }
-  ];
-
-  readonly colonies: Colony[] = [
-    {
-      name: 'Colonia Centro',
-      location: 'Valencia',
-      cats: 12,
-      volunteers: 2,
-      status: 'Activa',
-      image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=900&q=85'
-    },
-    {
-      name: 'Colonia Playa',
-      location: 'Valencia',
-      cats: 8,
-      volunteers: 1,
-      status: 'Activa',
-      image: 'https://images.unsplash.com/photo-1495360010541-f48722b34f7d?auto=format&fit=crop&w=900&q=85'
-    },
-    {
-      name: 'Colonia Universidad',
-      location: 'Valencia',
-      cats: 15,
-      volunteers: 4,
-      status: 'Activa',
-      image: 'https://images.unsplash.com/photo-1511044568932-338cba0ad803?auto=format&fit=crop&w=900&q=85'
-    },
-    {
-      name: 'Colonia Jardín del Turia',
-      location: 'Valencia',
-      cats: 9,
-      volunteers: 3,
-      status: 'Activa',
-      image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=900&q=85'
-    },
-    {
-      name: 'Colonia Puerto',
-      location: 'Valencia',
-      cats: 6,
-      volunteers: 0,
-      status: 'Pendiente',
-      image: 'https://images.unsplash.com/photo-1495360010541-f48722b34f7d?auto=format&fit=crop&w=900&q=85'
-    }
-  ];
+  get stats() {
+    return [
+      { label: 'Colonias activas', value: String(this.colonies.length), icon: '⌂', tone: 'violet' },
+      { label: 'Gatos registrados', value: String(this.cats.length), icon: '♧', tone: 'pink' },
+      { label: 'Personas voluntarias', value: String(this.volunteers.length), icon: '♙', tone: 'blue' },
+      { label: 'En adopción', value: '0', icon: '♡', tone: 'peach' }
+    ];
+  }
 
   readonly subtitles: Record<Section, string> = {
     Inicio: 'Esto es lo que está pasando hoy en tus colonias.',
@@ -112,45 +83,19 @@ export class AppComponent {
   // Gatos
   catFilter: CatFilter = 'Todos';
   readonly catFilters: CatFilter[] = ['Todos', 'Esterilizados', 'Pendientes'];
-  readonly cats: Cat[] = [
-    { name: 'Luna', code: 'C-001', colony: 'Colonia Centro', trait: 'Atigrada gris, muesca en la oreja izquierda', sterilized: true, lastVet: '12 oct 2026' },
-    { name: 'Miso', code: 'C-002', colony: 'Colonia Centro', trait: 'Naranja, pelo corto', sterilized: true, lastVet: '03 sep 2026' },
-    { name: null, code: 'C-014', colony: 'Colonia Playa', trait: 'Negro con mancha blanca en el pecho', sterilized: false, lastVet: 'Sin registrar' },
-    { name: 'Nube', code: 'C-021', colony: 'Colonia Universidad', trait: 'Blanca, ojos azules', sterilized: false, lastVet: '20 oct 2026' },
-    { name: 'Tigre', code: 'C-022', colony: 'Colonia Universidad', trait: 'Atigrado marrón, cola corta', sterilized: true, lastVet: '28 jul 2026' },
-    { name: null, code: 'C-031', colony: 'Colonia Jardín del Turia', trait: 'Carey, pelo largo', sterilized: false, lastVet: 'Sin registrar' }
-  ];
 
   // Voluntariado
-  readonly volunteers = [
-    { name: 'Lidia', role: 'Administradora', roleClass: 'admin', colony: 'Todas las colonias' },
-    { name: 'Ana García', role: 'Cuidadora', roleClass: '', colony: 'Colonia Centro' },
-    { name: 'Marcos Ruiz', role: 'Cuidador', roleClass: '', colony: 'Colonia Playa' },
-    { name: 'Paula Soler', role: 'Cuidadora', roleClass: '', colony: 'Colonia Universidad' },
-    { name: 'Invitado/a', role: 'Consulta', roleClass: 'viewer', colony: 'Solo lectura' }
-  ];
 
-  // Calendario (octubre de 2026, datos de demostración)
-  readonly calendarMonth = 'Octubre 2026';
-  readonly todayDay = 27;
+  // Calendario
+  readonly calendarMonth = 'Calendario';
+  readonly todayDay = 1;
   readonly weekDays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-  readonly events = [
-    { day: 6, title: 'Alimentación', colony: 'Colonia Playa', tone: 'pink' },
-    { day: 14, title: 'Limpieza de comederos', colony: 'Colonia Centro', tone: 'green' },
-    { day: 20, title: 'Revisión veterinaria', colony: 'Colonia Universidad', tone: 'violet' },
-    { day: 27, title: 'Alimentación', colony: 'Colonia Centro', tone: 'pink' },
-    { day: 29, title: 'Revisión veterinaria', colony: 'Colonia Playa', tone: 'violet' },
-    { day: 31, title: 'Limpieza de comederos', colony: 'Colonia Universidad', tone: 'green' }
-  ];
+  readonly events: { day: number; title: string; colony: string; tone: string }[] = [];
   readonly upcomingEvents = this.events.filter(e => e.day >= this.todayDay);
   readonly calendarWeeks: (number | null)[][] = this.buildCalendar(2026, 9);
 
-  // Perfil (roles propuestos, pendientes de definir en la fase de diseño)
-  readonly roles = [
-    { name: 'Administradora', description: 'Gestiona colonias, gatos, personas y ajustes.' },
-    { name: 'Cuidador/a', description: 'Registra cuidados, tareas e incidencias de sus colonias.' },
-    { name: 'Consulta', description: 'Solo puede consultar la información.' }
-  ];
+  // Perfil
+  readonly roles: { name: string; description: string }[] = [];
 
   get filteredColonies(): Colony[] {
     const term = this.searchTerm.trim().toLocaleLowerCase('es');
@@ -196,6 +141,24 @@ export class AppComponent {
   // Demostración del login: al autenticarse se entra en Inicio.
   login(): void {
     this.activeView = 'Inicio';
+  }
+
+  private loadColonies(): void {
+    this.colonyService.getColonies().subscribe({
+      next: colonies => {
+        this.colonies = colonies.map(colony => ({
+          name: colony.name,
+          location: colony.location,
+          cats: 0,
+          volunteers: 0,
+          status: colony.active ? 'Activa' : 'Pendiente',
+          image: ''
+        }));
+      },
+      error: () => {
+        this.colonies = [];
+      }
+    });
   }
 
   logout(): void {
