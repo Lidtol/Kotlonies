@@ -1,7 +1,7 @@
 package com.kotlonies_api.controller;
 
 import com.kotlonies_api.dto.CatRequest;
-import com.kotlonies_api.model.Cat;
+import com.kotlonies_api.dto.CatResponse;
 import com.kotlonies_api.service.CatService;
 
 import jakarta.validation.Valid;
@@ -23,55 +23,35 @@ public class CatController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Cat>> findAll() {
+    public ResponseEntity<List<CatResponse>> findAll() {
         return ResponseEntity.ok(catService.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Cat> findById(@PathVariable Long id) {
+    public ResponseEntity<CatResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(catService.findById(id));
     }
 
     @PostMapping
-    public ResponseEntity<Cat> create(
-            @Valid @RequestBody CatRequest request) {
-
-        Cat cat = convertToCat(request);
-        Cat createdCat = catService.create(cat);
-
+    public ResponseEntity<CatResponse> create(
+            @Valid @RequestBody CatRequest request
+    ) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(createdCat);
+                .body(catService.create(request));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Cat> update(
+    public ResponseEntity<CatResponse> update(
             @PathVariable Long id,
-            @Valid @RequestBody CatRequest request) {
-
-        Cat cat = convertToCat(request);
-
-        return ResponseEntity.ok(catService.update(id, cat));
+            @Valid @RequestBody CatRequest request
+    ) {
+        return ResponseEntity.ok(catService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         catService.delete(id);
         return ResponseEntity.noContent().build();
-    }
-
-    private Cat convertToCat(CatRequest request) {
-        Cat cat = new Cat();
-        cat.setName(request.getName());
-        cat.setSex(request.getSex());
-        cat.setBirthDate(request.getBirthDate());
-        cat.setColor(request.getColor());
-        cat.setStatus(request.getStatus());
-        cat.setNeutered(request.getNeutered());
-        cat.setIdentified(request.getIdentified());
-        cat.setColonyId(request.getColonyId());
-        cat.setObservations(request.getObservations());
-
-        return cat;
     }
 }
