@@ -151,26 +151,50 @@
           <p class="result-count" aria-live="polite">{{ filteredColonies.length }} colonias</p>
         </div>
 
-        <form class="panel form-panel" *ngIf="colonyFormOpen" (ngSubmit)="saveColony()">
-          <h2>{{ colonyForm.id === null ? 'Nueva colonia' : 'Editar colonia' }}</h2>
+        <form class="panel form-panel form-enter" *ngIf="colonyFormOpen" (ngSubmit)="saveColony()">
+          <div class="form-heading">
+            <span class="form-icon violet-bg" aria-hidden="true">⌂</span>
+            <div class="form-heading-text">
+              <p class="eyebrow">COLONIAS</p>
+              <h2>{{ colonyForm.id === null ? 'Nueva colonia' : 'Editar colonia' }}</h2>
+              <p class="form-hint">Define la colonia y su ubicación para poder registrar sus gatos.</p>
+            </div>
+            <button class="icon-button form-close" type="button" aria-label="Cerrar formulario" (click)="closeForms()">✕</button>
+          </div>
           <p class="form-alert" role="alert" *ngIf="formError">{{ formError }}</p>
           <div class="form-grid">
-            <label class="form-field">Nombre
-              <input name="name" [(ngModel)]="colonyForm.name" required maxlength="100" />
+            <label class="field">
+              <span class="field-label">Nombre <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">⌂</span>
+                <input name="name" [(ngModel)]="colonyForm.name" required maxlength="100" placeholder="Colonia del puerto" />
+              </span>
             </label>
-            <label class="form-field">Ubicación
-              <input name="location" [(ngModel)]="colonyForm.location" required maxlength="200" />
+            <label class="field">
+              <span class="field-label">Ubicación <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">⌖</span>
+                <input name="location" [(ngModel)]="colonyForm.location" required maxlength="200" placeholder="Zona donde se encuentra" />
+              </span>
             </label>
-            <label class="form-field wide">Descripción
-              <textarea name="description" [(ngModel)]="colonyForm.description" maxlength="500" rows="2"></textarea>
+            <label class="field field-wide">
+              <span class="field-label">Descripción</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">✎</span>
+                <textarea name="description" [(ngModel)]="colonyForm.description" maxlength="500" rows="3" placeholder="Rasgos, número de gatos, punto de alimentación..."></textarea>
+              </span>
             </label>
-            <label class="form-check">
-              <input type="checkbox" name="active" [(ngModel)]="colonyForm.active" /> Activa
-            </label>
+            <div class="form-checks">
+              <label class="checkbox">
+                <input type="checkbox" name="active" [(ngModel)]="colonyForm.active" />
+                <span class="checkbox-box" aria-hidden="true">✓</span>
+                <span class="checkbox-text">Colonia activa</span>
+              </label>
+            </div>
           </div>
           <div class="form-actions">
-            <button class="primary-button" type="submit">Guardar</button>
             <button class="btn-secondary" type="button" (click)="closeForms()">Cancelar</button>
+            <button class="primary-button" type="submit"><span class="submit-icon">♡</span> Guardar colonia</button>
           </div>
         </form>
 
@@ -209,44 +233,90 @@
           <p class="result-count" aria-live="polite">{{ filteredCats.length }} gatos</p>
         </div>
 
-        <form class="panel form-panel" *ngIf="catFormOpen" (ngSubmit)="saveCat()">
-          <h2>{{ catForm.id === null ? 'Nuevo gato' : 'Editar gato' }}</h2>
+        <form class="panel form-panel form-enter" *ngIf="catFormOpen" (ngSubmit)="saveCat()">
+          <div class="form-heading">
+            <span class="form-icon pink-bg" aria-hidden="true">♢</span>
+            <div class="form-heading-text">
+              <p class="eyebrow">GATOS</p>
+              <h2>{{ catForm.id === null ? 'Nuevo gato' : 'Editar gato' }}</h2>
+              <p class="form-hint">Los campos sin estrella pueden quedar vacíos si aún no tienes el dato.</p>
+            </div>
+            <button class="icon-button form-close" type="button" aria-label="Cerrar formulario" (click)="closeForms()">✕</button>
+          </div>
           <p class="form-alert" role="alert" *ngIf="formError">{{ formError }}</p>
           <div class="form-grid">
-            <label class="form-field">Nombre
-              <input name="name" [(ngModel)]="catForm.name" maxlength="100" placeholder="Vacío si aún no tiene" />
+            <label class="field">
+              <span class="field-label">Nombre</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">♢</span>
+                <input name="name" [(ngModel)]="catForm.name" maxlength="100" placeholder="Vacío si aún no tiene" />
+              </span>
             </label>
-            <label class="form-field">Sexo
-              <select name="sex" [(ngModel)]="catForm.sex">
-                <option *ngFor="let s of sexOptions" [value]="s.value">{{ s.label }}</option>
-              </select>
+            <label class="field">
+              <span class="field-label">Sexo</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">⚥</span>
+                <select name="sex" [(ngModel)]="catForm.sex">
+                  <option *ngFor="let s of sexOptions" [value]="s.value">{{ s.label }}</option>
+                </select>
+              </span>
             </label>
-            <label class="form-field">Fecha de nacimiento
-              <input type="date" name="birthDate" [(ngModel)]="catForm.birthDate" />
+            <label class="field">
+              <span class="field-label">Fecha de nacimiento</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">▦</span>
+                <input type="date" name="birthDate" [(ngModel)]="catForm.birthDate" />
+              </span>
             </label>
-            <label class="form-field">Color
-              <input name="color" [(ngModel)]="catForm.color" maxlength="100" />
+            <label class="field">
+              <span class="field-label">Color</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">✦</span>
+                <input name="color" [(ngModel)]="catForm.color" maxlength="100" placeholder="Atigrado, negro, blanco..." />
+              </span>
             </label>
-            <label class="form-field">Estado
-              <select name="status" [(ngModel)]="catForm.status">
-                <option *ngFor="let s of statusOptions" [value]="s">{{ statusLabels[s] }}</option>
-              </select>
+            <label class="field">
+              <span class="field-label">Estado <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">◈</span>
+                <select name="status" [(ngModel)]="catForm.status">
+                  <option *ngFor="let s of statusOptions" [value]="s">{{ statusLabels[s] }}</option>
+                </select>
+              </span>
             </label>
-            <label class="form-field">Colonia
-              <select name="colonyId" [(ngModel)]="catForm.colonyId">
-                <option [ngValue]="null">Sin asignar</option>
-                <option *ngFor="let c of colonyOptions" [ngValue]="c.id">{{ c.name }}</option>
-              </select>
+            <label class="field">
+              <span class="field-label">Colonia</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">⌂</span>
+                <select name="colonyId" [(ngModel)]="catForm.colonyId">
+                  <option [ngValue]="null">Sin asignar</option>
+                  <option *ngFor="let c of colonyOptions" [ngValue]="c.id">{{ c.name }}</option>
+                </select>
+              </span>
             </label>
-            <label class="form-field wide">Observaciones
-              <textarea name="observations" [(ngModel)]="catForm.observations" maxlength="1000" rows="2"></textarea>
+            <label class="field field-wide">
+              <span class="field-label">Observaciones</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">✎</span>
+                <textarea name="observations" [(ngModel)]="catForm.observations" maxlength="1000" rows="3" placeholder="Carácter, salud, alergias..."></textarea>
+              </span>
             </label>
-            <label class="form-check"><input type="checkbox" name="neutered" [(ngModel)]="catForm.neutered" /> Esterilizado</label>
-            <label class="form-check"><input type="checkbox" name="identified" [(ngModel)]="catForm.identified" /> Identificado</label>
+            <div class="form-checks">
+              <label class="checkbox">
+                <input type="checkbox" name="neutered" [(ngModel)]="catForm.neutered" />
+                <span class="checkbox-box" aria-hidden="true">✓</span>
+                <span class="checkbox-text">Esterilizado</span>
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" name="identified" [(ngModel)]="catForm.identified" />
+                <span class="checkbox-box" aria-hidden="true">✓</span>
+                <span class="checkbox-text">Identificado</span>
+              </label>
+            </div>
           </div>
           <div class="form-actions">
-            <button class="primary-button" type="submit">Guardar</button>
             <button class="btn-secondary" type="button" (click)="closeForms()">Cancelar</button>
+            <button class="primary-button" type="submit"><span class="submit-icon">♡</span> Guardar gato</button>
           </div>
         </form>
 
@@ -290,31 +360,59 @@
 
       <!-- VOLUNTARIADO -->
       <section *ngIf="activeView === 'Voluntariado'" aria-label="Personas con acceso">
-        <form class="panel form-panel" *ngIf="userFormOpen" (ngSubmit)="saveUser()">
-          <h2>Nueva persona con acceso</h2>
+        <form class="panel form-panel form-enter" *ngIf="userFormOpen" (ngSubmit)="saveUser()">
+          <div class="form-heading">
+            <span class="form-icon blue-bg" aria-hidden="true">♙</span>
+            <div class="form-heading-text">
+              <p class="eyebrow">VOLUNTARIADO</p>
+              <h2>Nueva persona con acceso</h2>
+              <p class="form-hint">Solo la administración puede crear cuentas nuevas.</p>
+            </div>
+            <button class="icon-button form-close" type="button" aria-label="Cerrar formulario" (click)="closeForms()">✕</button>
+          </div>
           <p class="form-alert" role="alert" *ngIf="formError">{{ formError }}</p>
           <div class="form-grid">
-            <label class="form-field">Nombre
-              <input name="nombre" [(ngModel)]="userForm.nombre" required maxlength="100" />
+            <label class="field">
+              <span class="field-label">Nombre <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">◉</span>
+                <input name="nombre" [(ngModel)]="userForm.nombre" required maxlength="100" placeholder="Nombre y apellidos" />
+              </span>
             </label>
-            <label class="form-field">Correo electrónico
-              <input type="email" name="email" [(ngModel)]="userForm.email" required maxlength="200" />
+            <label class="field">
+              <span class="field-label">Correo electrónico <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">@</span>
+                <input type="email" name="email" [(ngModel)]="userForm.email" required maxlength="200" placeholder="persona@example.com" autocomplete="off" />
+              </span>
             </label>
-            <label class="form-field">Contraseña
-              <input type="password" name="password" [(ngModel)]="userForm.password" required minlength="8" maxlength="100" autocomplete="new-password" />
+            <label class="field">
+              <span class="field-label">Contraseña <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">⚿</span>
+                <input type="password" name="password" [(ngModel)]="userForm.password" required minlength="8" maxlength="100" autocomplete="new-password" placeholder="Mínimo 8 caracteres" />
+              </span>
             </label>
-            <label class="form-field">Rol
-              <select name="rol" [(ngModel)]="userForm.rol">
-                <option *ngFor="let r of rolOptions" [value]="r.value">{{ r.label }}</option>
-              </select>
+            <label class="field">
+              <span class="field-label">Rol <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">⚑</span>
+                <select name="rol" [(ngModel)]="userForm.rol">
+                  <option *ngFor="let r of rolOptions" [value]="r.value">{{ r.label }}</option>
+                </select>
+              </span>
             </label>
-            <label class="form-check">
-              <input type="checkbox" name="activo" [(ngModel)]="userForm.activo" /> Cuenta activa
-            </label>
+            <div class="form-checks">
+              <label class="checkbox">
+                <input type="checkbox" name="activo" [(ngModel)]="userForm.activo" />
+                <span class="checkbox-box" aria-hidden="true">✓</span>
+                <span class="checkbox-text">Cuenta activa</span>
+              </label>
+            </div>
           </div>
           <div class="form-actions">
-            <button class="primary-button" type="submit">Guardar</button>
             <button class="btn-secondary" type="button" (click)="closeForms()">Cancelar</button>
+            <button class="primary-button" type="submit"><span class="submit-icon">♡</span> Guardar acceso</button>
           </div>
         </form>
         <p class="empty-state" *ngIf="usersMessage">{{ usersMessage }}</p>
