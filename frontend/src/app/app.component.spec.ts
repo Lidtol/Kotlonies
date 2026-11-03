@@ -1,21 +1,26 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { of } from 'rxjs';
+
 import { AppComponent } from './app.component';
-import { AuthService } from './core/auth.service';
+import { AuthService, UsuarioPublico } from './core/auth.service';
 import { ColonyService } from './core/colony.service';
+import { CatService } from './core/cat.service';
+import { UserService } from './core/user.service';
 
 describe('AppComponent', () => {
-  let fixture: ComponentFixture<AppComponent>;
-  let component: AppComponent;
+  const usuario = signal<UsuarioPublico | null>(null);
 
   beforeEach(async () => {
+    usuario.set(null);
+
     await TestBed.configureTestingModule({
       imports: [AppComponent],
       providers: [
         {
           provide: AuthService,
           useValue: {
-            usuario: { set: jasmine.createSpy('set') },
+            usuario,
             logout: () => of(void 0)
           }
         },
@@ -23,42 +28,62 @@ describe('AppComponent', () => {
           provide: ColonyService,
           useValue: {
             getColonies: () => of([
-              { id: 1, name: 'Colonia real', description: '', location: 'Sevilla', active: true }
+              {
+                id: 1,
+                name: 'Colonia real',
+                description: '',
+                location: 'Sevilla',
+                active: true
+              }
             ])
+          }
+        },
+        {
+          provide: CatService,
+          useValue: {
+            getCats: () => of([])
+          }
+        },
+        {
+          provide: UserService,
+          useValue: {
+            getUsers: () => of([])
           }
         }
       ]
     }).compileComponents();
-
-    fixture = TestBed.createComponent(AppComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create the dashboard', () => {
-    expect(component).toBeTruthy();
   });
 
   it('should start on the login view', () => {
+    const component = TestBed.createComponent(AppComponent).componentInstance;
+
+    TestBed.tick();
+
     expect(component.activeView).toBe('Login');
   });
 
-  it('should enter the app after login', () => {
-    component.login();
+  it('should enter the app and load colonies when a session exists', () => {
+    const component = TestBed.createComponent(AppComponent).componentInstance;
+
+    usuario.set({
+      id: 1,
+      nombre: 'Lidia',
+      email: 'lidia@example.com',
+      rol: 'ADMIN'
+    });
+
+    TestBed.tick();
+
     expect(component.activeView).toBe('Inicio');
-  });
-
-  it('should load colonies from the backend service', () => {
-    component['colonies'] = [
-      { name: 'Colonia real', location: 'Sevilla', cats: 3, volunteers: 1, status: 'Activa', image: '' }
-    ];
-
     expect(component.filteredColonies.length).toBe(1);
     expect(component.filteredColonies[0].name).toBe('Colonia real');
   });
 
   it('should change the active section', () => {
+    const component = TestBed.createComponent(AppComponent).componentInstance;
+
     component.selectSection('Gatos');
+
     expect(component.activeView).toBe('Gatos');
   });
 });

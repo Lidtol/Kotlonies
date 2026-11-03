@@ -1,6 +1,7 @@
 # Variables de entorno y secretos
 .env
 !.env.example
+backend/kotlonies-api/data/
 
 # Java y Maven
 target/

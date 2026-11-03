@@ -1,13 +1,17 @@
 package com.kotlonies_api.service;
 
+import com.kotlonies_api.dto.CatRequest;
+import com.kotlonies_api.dto.CatResponse;
 import com.kotlonies_api.model.Cat;
 import com.kotlonies_api.repository.CatRepository;
 import com.kotlonies_api.repository.ColonyRepository;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @Service
@@ -16,59 +20,66 @@ public class CatService {
     private final CatRepository catRepository;
     private final ColonyRepository colonyRepository;
 
-    public CatService(
-            CatRepository catRepository,
-            ColonyRepository colonyRepository
-    ) {
+    public CatService(CatRepository catRepository, ColonyRepository colonyRepository) {
         this.catRepository = catRepository;
         this.colonyRepository = colonyRepository;
     }
 
-    public List<Cat> findAll() {
-        return catRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<CatResponse> findAll() {
+        return catRepository.findAll().stream().map(CatResponse::from).toList();
     }
 
-    public Cat findById(Long id) {
-        return catRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "No cat found with ID " + id
-                ));
+    @Transactional(readOnly = true)
+    public CatResponse findById(Long id) {
+        return CatResponse.from(findOrThrow(id));
     }
 
-    public Cat create(Cat cat) {
-        validateColony(cat.getColonyId());
-
-        cat.setId(null);
-        return catRepository.save(cat);
+    @Transactional
+    public CatResponse create(CatRequest request) {
+        Cat cat = new Cat();
+        apply(cat, request);
+        return CatResponse.from(catRepository.save(cat));
     }
 
-    public Cat update(Long id, Cat cat) {
-        findById(id);
-        validateColony(cat.getColonyId());
-
-        cat.setId(id);
-        return catRepository.save(cat);
+    @Transactional
+    public CatResponse update(Long id, CatRequest request) {
+        Cat cat = findOrThrow(id);
+        apply(cat, request);
+        return CatResponse.from(cat);
     }
 
+    @Transactional
     public void delete(Long id) {
-        findById(id);
-        catRepository.deleteById(id);
+        catRepository.delete(findOrThrow(id));
     }
 
-    private void validateColony(Long colonyId) {
-        if (colonyId == null) {
-            return;
-        }
+    private Cat findOrThrow(Long id) {
+        return catRepository.findById(id).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "No cat found with ID " + id));
+    }
 
-        boolean exists = colonyRepository.findById(colonyId)
-                .isPresent();
+    private void apply(Cat cat, CatRequest request) {
+        cat.setName(request.getName());
+        cat.setSex(request.getSex() == null ? null : request.getSex().toUpperCase());
+        cat.setBirthDate(parseDate(request.getBirthDate()));
+        cat.setColor(request.getColor());
+        cat.setStatus(request.getStatus().trim());
+        cat.setNeutered(request.getNeutered());
+        cat.setIdentified(request.getIdentified());
+        cat.setObservations(request.getObservations());
+        cat.setColony(request.getColonyId() == null ? null :
+                colonyRepository.findById(request.getColonyId()).orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                "No colony found with ID " + request.getColonyId())));
+    }
 
-        if (!exists) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "No colony found with ID " + colonyId
-            );
+    private LocalDate parseDate(String value) {
+        if (value == null) return null;
+        try {
+            return LocalDate.parse(value);
+        } catch (DateTimeParseException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid birth date");
         }
     }
 }

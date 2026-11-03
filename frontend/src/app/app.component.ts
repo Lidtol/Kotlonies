@@ -1,33 +1,59 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { LoginComponent } from './features/login/login.component';
 import { AuthService } from './core/auth.service';
-import { ColonyService } from './core/colony.service';
+import { BackendColony, ColonyService } from './core/colony.service';
+import { BackendCat, CatPayload, CatService } from './core/cat.service';
+import { BackendUser, UserService } from './core/user.service';
 
 type CatFilter = 'Todos' | 'Esterilizados' | 'Pendientes';
-
 type Section = 'Inicio' | 'Colonias' | 'Gatos' | 'Voluntariado' | 'Calendario' | 'Perfil';
-
 type View = 'Login' | Section;
 
-interface Cat {
-  name: string | null;
-  code: string;
-  colony: string;
-  trait: string;
-  sterilized: boolean;
-  lastVet: string;
-}
-
-interface Colony {
+interface ColonyView {
+  id: number;
   name: string;
   location: string;
   cats: number;
-  volunteers: number;
-  status: 'Activa' | 'Pendiente';
+  active: boolean;
   image: string;
 }
+
+interface CatView {
+  id: number;
+  name: string | null;
+  code: string;
+  colony: string;
+  color: string;
+  status: string;
+  sterilized: boolean;
+}
+
+interface ColonyForm {
+  id: number | null;
+  name: string;
+  description: string;
+  location: string;
+  active: boolean;
+}
+
+interface CatForm {
+  id: number | null;
+  name: string;
+  sex: string;
+  birthDate: string;
+  color: string;
+  status: string;
+  neutered: boolean;
+  identified: boolean;
+  colonyId: number | null;
+  observations: string;
+}
+
+const PLACEHOLDER_IMAGE =
+  'https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=600&q=80';
 
 @Component({
   selector: 'app-root',
@@ -36,22 +62,28 @@ interface Colony {
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
+  private readonly auth = inject(AuthService);
+  private readonly colonyService = inject(ColonyService);
+  private readonly catService = inject(CatService);
+  private readonly userService = inject(UserService);
+
+  readonly usuario = this.auth.usuario;
+
   activeView: View = 'Login';
   searchTerm = '';
 
-  colonies: Colony[] = [];
-  cats: Cat[] = [];
-  volunteers: { name: string; role: string; roleClass: string; colony: string }[] = [];
+  private rawColonies: BackendColony[] = [];
+  private rawCats: BackendCat[] = [];
+  users: BackendUser[] = [];
+  usersMessage: string | null = null;
 
-  constructor(
-    private readonly auth: AuthService,
-    private readonly colonyService: ColonyService
-  ) {}
-
-  ngOnInit(): void {
-    this.loadColonies();
-  }
+  // Formularios
+  colonyFormOpen = false;
+  catFormOpen = false;
+  formError: string | null = null;
+  colonyForm: ColonyForm = this.emptyColonyForm();
+  catForm: CatForm = this.emptyCatForm();
 
   readonly navigation: { label: Section; icon: string }[] = [
     { label: 'Inicio', icon: '⌂' },
@@ -62,65 +94,308 @@ export class AppComponent implements OnInit {
     { label: 'Perfil', icon: '◉' }
   ];
 
-  get stats() {
-    return [
-      { label: 'Colonias activas', value: String(this.colonies.length), icon: '⌂', tone: 'violet' },
-      { label: 'Gatos registrados', value: String(this.cats.length), icon: '♧', tone: 'pink' },
-      { label: 'Personas voluntarias', value: String(this.volunteers.length), icon: '♙', tone: 'blue' },
-      { label: 'En adopción', value: '0', icon: '♡', tone: 'peach' }
-    ];
-  }
-
   readonly subtitles: Record<Section, string> = {
     Inicio: 'Esto es lo que está pasando hoy en tus colonias.',
     Colonias: 'Todas las colonias que gestionas y su estado.',
     Gatos: 'Fichas de los gatos, incluidos los que aún no tienen nombre.',
-    Voluntariado: 'Las personas que cuidan de las colonias y su rol.',
+    Voluntariado: 'Las personas con acceso a la plataforma y su rol.',
     Calendario: 'Visitas, alimentación y revisiones previstas.',
     Perfil: 'Tus datos y los permisos de cada rol.'
   };
 
-  // Gatos
-  catFilter: CatFilter = 'Todos';
   readonly catFilters: CatFilter[] = ['Todos', 'Esterilizados', 'Pendientes'];
+  catFilter: CatFilter = 'Todos';
 
-  // Voluntariado
+  readonly statusLabels: Record<string, string> = {
+    EN_COLONIA: 'En colonia',
+    EN_SEGUIMIENTO: 'En seguimiento',
+    EN_ADOPCION: 'En adopción'
+  };
+  readonly statusOptions = Object.keys(this.statusLabels);
+  readonly sexOptions = [
+    { value: 'FEMALE', label: 'Hembra' },
+    { value: 'MALE', label: 'Macho' },
+    { value: 'UNKNOWN', label: 'Desconocido' }
+  ];
 
-  // Calendario
-  readonly calendarMonth = 'Calendario';
-  readonly todayDay = 1;
+  readonly roleLabels: Record<string, string> = {
+    ADMIN: 'Administración',
+    CUIDADOR: 'Cuidador/a',
+    CONSULTA: 'Consulta'
+  };
+  readonly roles = [
+    { name: 'Administración', description: 'Gestiona usuarios, colonias y gatos.' },
+    { name: 'Cuidador/a', description: 'Registra y actualiza colonias y gatos.' },
+    { name: 'Consulta', description: 'Solo puede consultar la información.' }
+  ];
+
+  // Calendario (sin backend todavía: no hay tareas)
+  private readonly now = new Date();
+  readonly todayLabel = this.now.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+  readonly calendarMonth = this.now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+  readonly todayDay = this.now.getDate();
   readonly weekDays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   readonly events: { day: number; title: string; colony: string; tone: string }[] = [];
   readonly upcomingEvents = this.events.filter(e => e.day >= this.todayDay);
-  readonly calendarWeeks: (number | null)[][] = this.buildCalendar(2026, 9);
+  readonly calendarWeeks = this.buildCalendar(this.now.getFullYear(), this.now.getMonth());
 
-  // Perfil
-  readonly roles: { name: string; description: string }[] = [];
-
-  get filteredColonies(): Colony[] {
-    const term = this.searchTerm.trim().toLocaleLowerCase('es');
-    if (!term) return this.colonies;
-    return this.colonies.filter(colony =>
-      colony.name.toLocaleLowerCase('es').includes(term) ||
-      colony.location.toLocaleLowerCase('es').includes(term)
-    );
+  constructor() {
+    // Reacciona a la sesión: tras el login o al recuperarla al recargar la página.
+    effect(() => {
+      const user = this.auth.usuario();
+      if (user) {
+        if (this.activeView === 'Login') this.activeView = 'Inicio';
+        this.loadColonies();
+        this.loadCats();
+        this.loadUsers(user.rol);
+      } else {
+        this.activeView = 'Login';
+        this.rawColonies = [];
+        this.rawCats = [];
+        this.users = [];
+      }
+    });
   }
 
-  get filteredCats(): Cat[] {
+  // ---------- Datos derivados ----------
+  get colonyCount(): number {
+    return this.rawColonies.length;
+  }
+
+  get stats() {
+    return [
+      { label: 'Colonias activas', value: String(this.rawColonies.filter(c => c.active).length), icon: '⌂', tone: 'violet' },
+      { label: 'Gatos registrados', value: String(this.rawCats.length), icon: '♧', tone: 'pink' },
+      { label: 'Personas con acceso', value: String(this.users.length), icon: '♙', tone: 'blue' },
+      { label: 'En adopción', value: String(this.rawCats.filter(c => c.status === 'EN_ADOPCION').length), icon: '♡', tone: 'peach' }
+    ];
+  }
+
+  get filteredColonies(): ColonyView[] {
     const term = this.searchTerm.trim().toLocaleLowerCase('es');
-    return this.cats.filter(cat => {
-      const matchesFilter = this.catFilter === 'Todos' || (this.catFilter === 'Esterilizados') === cat.sterilized;
-      const text = `${cat.name ?? 'Sin nombre'} ${cat.code} ${cat.colony}`.toLocaleLowerCase('es');
-      return matchesFilter && (!term || text.includes(term));
-    });
+    return this.rawColonies
+      .map(c => ({
+        id: c.id,
+        name: c.name,
+        location: c.location,
+        active: c.active,
+        cats: this.rawCats.filter(cat => cat.colonyId === c.id).length,
+        image: PLACEHOLDER_IMAGE
+      }))
+      .filter(c => !term || c.name.toLocaleLowerCase('es').includes(term) || c.location.toLocaleLowerCase('es').includes(term));
+  }
+
+  get colonyOptions(): { id: number; name: string }[] {
+    return this.rawColonies.filter(c => c.active).map(c => ({ id: c.id, name: c.name }));
+  }
+
+  get filteredCats(): CatView[] {
+    const term = this.searchTerm.trim().toLocaleLowerCase('es');
+    return this.rawCats
+      .map<CatView>(cat => ({
+        id: cat.id,
+        name: cat.name,
+        code: '#' + String(cat.id).padStart(3, '0'),
+        colony: cat.colonyName ?? 'Sin asignar',
+        color: cat.color ?? '—',
+        status: this.statusLabels[cat.status] ?? cat.status,
+        sterilized: !!cat.neutered
+      }))
+      .filter(cat => {
+        const matchesFilter = this.catFilter === 'Todos' || (this.catFilter === 'Esterilizados') === cat.sterilized;
+        const text = `${cat.name ?? 'Sin nombre'} ${cat.code} ${cat.colony}`.toLocaleLowerCase('es');
+        return matchesFilter && (!term || text.includes(term));
+      });
+  }
+
+  roleLabel(rol: string | undefined): string {
+    return rol ? (this.roleLabels[rol] ?? rol) : '';
+  }
+
+  roleClass(rol: string): string {
+    return rol === 'ADMIN' ? 'admin' : rol === 'CONSULTA' ? 'viewer' : '';
   }
 
   eventsOn(day: number) {
     return this.events.filter(event => event.day === day);
   }
 
+  // ---------- Navegación ----------
+  selectSection(section: Section): void {
+    this.activeView = section;
+    this.searchTerm = '';
+    this.catFilter = 'Todos';
+    this.closeForms();
+  }
+
+  login(): void {
+    this.activeView = 'Inicio';
+  }
+
+  logout(): void {
+    this.auth.logout().subscribe({ error: () => this.auth.usuario.set(null) });
+  }
+
+  // ---------- Colonias ----------
+  newColony(): void {
+    this.closeForms();
+    this.colonyForm = this.emptyColonyForm();
+    this.colonyFormOpen = true;
+  }
+
+  editColony(colony: ColonyView): void {
+    const raw = this.rawColonies.find(c => c.id === colony.id);
+    if (!raw) return;
+    this.closeForms();
+    this.colonyForm = {
+      id: raw.id,
+      name: raw.name,
+      description: raw.description ?? '',
+      location: raw.location,
+      active: raw.active
+    };
+    this.colonyFormOpen = true;
+  }
+
+  saveColony(): void {
+    const f = this.colonyForm;
+    const payload = {
+      name: f.name.trim(),
+      description: f.description.trim() || null,
+      location: f.location.trim(),
+      active: f.active
+    };
+    const request = f.id === null
+      ? this.colonyService.createColony(payload)
+      : this.colonyService.updateColony(f.id, payload);
+
+    request.subscribe({
+      next: () => { this.closeForms(); this.loadColonies(); },
+      error: (e: HttpErrorResponse) => this.formError = this.errorText(e)
+    });
+  }
+
+  archiveColony(colony: ColonyView): void {
+    this.colonyService.archiveColony(colony.id).subscribe({
+      next: () => this.loadColonies(),
+      error: (e: HttpErrorResponse) => this.formError = this.errorText(e)
+    });
+  }
+
+  // ---------- Gatos ----------
+  newCat(): void {
+    this.activeView = 'Gatos';
+    this.closeForms();
+    this.catForm = this.emptyCatForm();
+    this.catFormOpen = true;
+  }
+
+  editCat(cat: CatView): void {
+    const raw = this.rawCats.find(c => c.id === cat.id);
+    if (!raw) return;
+    this.closeForms();
+    this.catForm = {
+      id: raw.id,
+      name: raw.name ?? '',
+      sex: raw.sex ?? 'UNKNOWN',
+      birthDate: raw.birthDate ?? '',
+      color: raw.color ?? '',
+      status: raw.status,
+      neutered: !!raw.neutered,
+      identified: !!raw.identified,
+      colonyId: raw.colonyId,
+      observations: raw.observations ?? ''
+    };
+    this.catFormOpen = true;
+  }
+
+  saveCat(): void {
+    const f = this.catForm;
+    const payload: CatPayload = {
+      name: f.name.trim() || null,
+      sex: f.sex,
+      birthDate: f.birthDate || null,
+      color: f.color.trim() || null,
+      status: f.status,
+      neutered: f.neutered,
+      identified: f.identified,
+      colonyId: f.colonyId,
+      observations: f.observations.trim() || null
+    };
+    const request = f.id === null
+      ? this.catService.createCat(payload)
+      : this.catService.updateCat(f.id, payload);
+
+    request.subscribe({
+      next: () => { this.closeForms(); this.loadCats(); },
+      error: (e: HttpErrorResponse) => this.formError = this.errorText(e)
+    });
+  }
+
+  deleteCat(cat: CatView): void {
+    if (!confirm(`¿Eliminar a ${cat.name ?? 'este gato'}?`)) return;
+    this.catService.deleteCat(cat.id).subscribe({
+      next: () => this.loadCats(),
+      error: (e: HttpErrorResponse) => this.formError = this.errorText(e)
+    });
+  }
+
+  closeForms(): void {
+    this.colonyFormOpen = false;
+    this.catFormOpen = false;
+    this.formError = null;
+  }
+
+  // ---------- Carga ----------
+  private loadColonies(): void {
+    this.colonyService.getColonies().subscribe({
+      next: colonies => this.rawColonies = colonies,
+      error: () => this.rawColonies = []
+    });
+  }
+
+  private loadCats(): void {
+    this.catService.getCats().subscribe({
+      next: cats => this.rawCats = cats,
+      error: () => this.rawCats = []
+    });
+  }
+
+  private loadUsers(rol: string): void {
+    if (rol !== 'ADMIN') {
+      this.users = [];
+      this.usersMessage = 'Solo la administración puede ver este listado.';
+      return;
+    }
+    this.usersMessage = null;
+    this.userService.getUsers().subscribe({
+      next: users => this.users = users,
+      error: () => { this.users = []; this.usersMessage = 'No se ha podido cargar el listado.'; }
+    });
+  }
+
+  // ---------- Utilidades ----------
+  private errorText(e: HttpErrorResponse): string {
+    if (e.status === 0) return 'No hay conexión con el servidor.';
+    if (e.error?.mensaje) return e.error.mensaje;
+    if (e.error?.campos) return Object.values(e.error.campos).join(' ');
+    if (e.status === 403) return 'No tienes permisos para esta operación.';
+    return 'No se ha podido completar la operación.';
+  }
+
+  private emptyColonyForm(): ColonyForm {
+    return { id: null, name: '', description: '', location: '', active: true };
+  }
+
+  private emptyCatForm(): CatForm {
+    return {
+      id: null, name: '', sex: 'UNKNOWN', birthDate: '', color: '', status: 'EN_COLONIA',
+      neutered: false, identified: false, colonyId: null, observations: ''
+    };
+  }
+
   private buildCalendar(year: number, month: number): (number | null)[][] {
-    const offset = (new Date(year, month, 1).getDay() + 6) % 7; // semana desde el lunes
+    const offset = (new Date(year, month, 1).getDay() + 6) % 7;
     const total = new Date(year, month + 1, 0).getDate();
     const cells: (number | null)[] = [
       ...Array<null>(offset).fill(null),
@@ -130,41 +405,5 @@ export class AppComponent implements OnInit {
     const weeks: (number | null)[][] = [];
     for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
     return weeks;
-  }
-
-  selectSection(section: Section): void {
-    this.activeView = section;
-    this.searchTerm = '';
-    this.catFilter = 'Todos';
-  }
-
-  // Demostración del login: al autenticarse se entra en Inicio.
-  login(): void {
-    this.activeView = 'Inicio';
-  }
-
-  private loadColonies(): void {
-    this.colonyService.getColonies().subscribe({
-      next: colonies => {
-        this.colonies = colonies.map(colony => ({
-          name: colony.name,
-          location: colony.location,
-          cats: 0,
-          volunteers: 0,
-          status: colony.active ? 'Activa' : 'Pendiente',
-          image: ''
-        }));
-      },
-      error: () => {
-        this.colonies = [];
-      }
-    });
-  }
-
-  logout(): void {
-    this.auth.logout().subscribe({
-      complete: () => this.auth.usuario.set(null)
-    });
-    this.activeView = 'Login';
   }
 }
