@@ -10,9 +10,11 @@ import { UserService } from './core/user.service';
 
 describe('AppComponent', () => {
   const usuario = signal<UsuarioPublico | null>(null);
+  const cargando = signal(false);
 
   beforeEach(async () => {
     usuario.set(null);
+    cargando.set(false);
 
     await TestBed.configureTestingModule({
       imports: [AppComponent],
@@ -21,6 +23,7 @@ describe('AppComponent', () => {
           provide: AuthService,
           useValue: {
             usuario,
+            cargando,
             logout: () => of(void 0)
           }
         },
@@ -52,6 +55,16 @@ describe('AppComponent', () => {
         }
       ]
     }).compileComponents();
+  });
+
+  it('should keep no view while the session is still loading', () => {
+    cargando.set(true);
+    const component = TestBed.createComponent(AppComponent).componentInstance;
+
+    TestBed.tick();
+
+    expect(component.activeView).toBe('Login');
+    expect(component.cargandoSesion()).toBe(true);
   });
 
   it('should start on the login view', () => {

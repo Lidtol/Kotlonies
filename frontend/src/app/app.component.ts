@@ -1,4 +1,4 @@
-import { Component, effect, inject } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -69,14 +69,23 @@ export class AppComponent {
   private readonly userService = inject(UserService);
 
   readonly usuario = this.auth.usuario;
+  readonly cargandoSesion = this.auth.cargando;
 
   activeView: View = 'Login';
   searchTerm = '';
 
-  private rawColonies: BackendColony[] = [];
-  private rawCats: BackendCat[] = [];
+  private readonly rawColonies = signal<BackendColony[]>([]);
+  private readonly rawCats = signal<BackendCat[]>([]);
   users: BackendUser[] = [];
   usersMessage: string | null = null;
+
+  // Datos derivados como signals: los arrays base deben ser signals también; si son
+  // propiedades corrientes, el computed no se entera de su cambio y mostraría siempre 0.
+  private readonly colonyCountSignal = computed(() => this.rawColonies().length);
+  private readonly activeColonyCountSignal = computed(() => this.rawColonies().filter(c => c.active).length);
+  private readonly catCountSignal = computed(() => this.rawCats().length);
+  private readonly adoptionCountSignal = computed(() => this.rawCats().filter(c => c.status === 'EN_ADOPCION').length);
+  private readonly userCountSignal = computed(() => this.users.length);
 
   // Formularios
   colonyFormOpen = false;
@@ -142,6 +151,8 @@ export class AppComponent {
   constructor() {
     // Reacciona a la sesión: tras el login o al recuperarla al recargar la página.
     effect(() => {
+      // No decidimos vista hasta saber si había sesión abierta en el backend.
+      if (this.auth.cargando()) return;
       const user = this.auth.usuario();
       if (user) {
         if (this.activeView === 'Login') this.activeView = 'Inicio';
@@ -150,8 +161,8 @@ export class AppComponent {
         this.loadUsers(user.rol);
       } else {
         this.activeView = 'Login';
-        this.rawColonies = [];
-        this.rawCats = [];
+        this.rawColonies.set([]);
+        this.rawCats.set([]);
         this.users = [];
       }
     });
@@ -159,39 +170,39 @@ export class AppComponent {
 
   // ---------- Datos derivados ----------
   get colonyCount(): number {
-    return this.rawColonies.length;
+    return this.colonyCountSignal();
   }
 
   get stats() {
     return [
-      { label: 'Colonias activas', value: String(this.rawColonies.filter(c => c.active).length), icon: '⌂', tone: 'violet' },
-      { label: 'Gatos registrados', value: String(this.rawCats.length), icon: '♧', tone: 'pink' },
-      { label: 'Personas con acceso', value: String(this.users.length), icon: '♙', tone: 'blue' },
-      { label: 'En adopción', value: String(this.rawCats.filter(c => c.status === 'EN_ADOPCION').length), icon: '♡', tone: 'peach' }
+      { label: 'Colonias activas', value: String(this.activeColonyCountSignal()), icon: '⌂', tone: 'violet' },
+      { label: 'Gatos registrados', value: String(this.catCountSignal()), icon: '♧', tone: 'pink' },
+      { label: 'Personas con acceso', value: String(this.userCountSignal()), icon: '♙', tone: 'blue' },
+      { label: 'En adopción', value: String(this.adoptionCountSignal()), icon: '♡', tone: 'peach' }
     ];
   }
 
   get filteredColonies(): ColonyView[] {
     const term = this.searchTerm.trim().toLocaleLowerCase('es');
-    return this.rawColonies
+    return this.rawColonies()
       .map(c => ({
         id: c.id,
         name: c.name,
         location: c.location,
         active: c.active,
-        cats: this.rawCats.filter(cat => cat.colonyId === c.id).length,
+        cats: this.rawCats().filter(cat => cat.colonyId === c.id).length,
         image: PLACEHOLDER_IMAGE
       }))
       .filter(c => !term || c.name.toLocaleLowerCase('es').includes(term) || c.location.toLocaleLowerCase('es').includes(term));
   }
 
   get colonyOptions(): { id: number; name: string }[] {
-    return this.rawColonies.filter(c => c.active).map(c => ({ id: c.id, name: c.name }));
+    return this.rawColonies().filter(c => c.active).map(c => ({ id: c.id, name: c.name }));
   }
 
   get filteredCats(): CatView[] {
     const term = this.searchTerm.trim().toLocaleLowerCase('es');
-    return this.rawCats
+    return this.rawCats()
       .map<CatView>(cat => ({
         id: cat.id,
         name: cat.name,
@@ -238,13 +249,13 @@ export class AppComponent {
 
   // ---------- Colonias ----------
   newColony(): void {
-    this.closeForms();
+    this.selectSection('Colonias');
     this.colonyForm = this.emptyColonyForm();
     this.colonyFormOpen = true;
   }
 
   editColony(colony: ColonyView): void {
-    const raw = this.rawColonies.find(c => c.id === colony.id);
+    const raw = this.rawColonies().find(c => c.id === colony.id);
     if (!raw) return;
     this.closeForms();
     this.colonyForm = {
@@ -284,14 +295,13 @@ export class AppComponent {
 
   // ---------- Gatos ----------
   newCat(): void {
-    this.activeView = 'Gatos';
-    this.closeForms();
+    this.selectSection('Gatos');
     this.catForm = this.emptyCatForm();
     this.catFormOpen = true;
   }
 
   editCat(cat: CatView): void {
-    const raw = this.rawCats.find(c => c.id === cat.id);
+    const raw = this.rawCats().find(c => c.id === cat.id);
     if (!raw) return;
     this.closeForms();
     this.catForm = {
@@ -349,15 +359,15 @@ export class AppComponent {
   // ---------- Carga ----------
   private loadColonies(): void {
     this.colonyService.getColonies().subscribe({
-      next: colonies => this.rawColonies = colonies,
-      error: () => this.rawColonies = []
+      next: colonies => this.rawColonies.set(colonies),
+      error: () => this.rawColonies.set([])
     });
   }
 
   private loadCats(): void {
     this.catService.getCats().subscribe({
-      next: cats => this.rawCats = cats,
-      error: () => this.rawCats = []
+      next: cats => this.rawCats.set(cats),
+      error: () => this.rawCats.set([])
     });
   }
 

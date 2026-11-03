@@ -1,6 +1,10 @@
-<app-login *ngIf="activeView === 'Login'" (login)="login()" />
+<div class="session-loading" *ngIf="cargandoSesion()" role="status" aria-label="Cargando sesión">
+  <span class="session-loading-heart">♥</span>
+</div>
 
-<div class="app-shell" *ngIf="activeView !== 'Login'">
+<app-login *ngIf="!cargandoSesion() && activeView === 'Login'" (login)="login()" />
+
+<div class="app-shell" *ngIf="!cargandoSesion() && activeView !== 'Login'">
   <aside class="sidebar">
     <a class="brand" href="#" (click)="$event.preventDefault(); selectSection('Inicio')">
       <span class="brand-mark">♡</span>
@@ -53,7 +57,8 @@
           <h1 *ngIf="activeView !== 'Inicio'">{{ activeView }}</h1>
           <p class="page-subtitle">{{ subtitles[activeView] }}</p>
         </div>
-        <button class="primary-button" type="button" (click)="newCat()"><span>＋</span> Añadir Gato</button>
+        <button class="primary-button" type="button" (click)="newCat()" *ngIf="activeView !== 'Colonias'"><span>＋</span> Añadir Gato</button>
+        <button class="primary-button" type="button" (click)="newColony()" *ngIf="activeView === 'Colonias'"><span>＋</span> Añadir Colonia</button>
       </section>
 
       <p class="form-alert" role="alert" *ngIf="formError && !colonyFormOpen && !catFormOpen">{{ formError }}</p>
@@ -142,7 +147,6 @@
             <span aria-hidden="true">⌕</span>
             <input type="search" placeholder="Buscar por nombre o zona..." aria-label="Buscar colonias" [(ngModel)]="searchTerm" />
           </label>
-          <button class="btn-secondary" type="button" (click)="newColony()">＋ Nueva colonia</button>
           <p class="result-count" aria-live="polite">{{ filteredColonies.length }} colonias</p>
         </div>
 
