@@ -57,11 +57,12 @@
           <h1 *ngIf="activeView !== 'Inicio'">{{ activeView }}</h1>
           <p class="page-subtitle">{{ subtitles[activeView] }}</p>
         </div>
-        <button class="primary-button" type="button" (click)="newCat()" *ngIf="activeView !== 'Colonias'"><span>＋</span> Añadir Gato</button>
+        <button class="primary-button" type="button" (click)="newCat()" *ngIf="activeView !== 'Colonias' && activeView !== 'Voluntariado'"><span>＋</span> Añadir Gato</button>
         <button class="primary-button" type="button" (click)="newColony()" *ngIf="activeView === 'Colonias'"><span>＋</span> Añadir Colonia</button>
+        <button class="primary-button" type="button" (click)="newUser()" *ngIf="activeView === 'Voluntariado'"><span>＋</span> Añadir Voluntariado</button>
       </section>
 
-      <p class="form-alert" role="alert" *ngIf="formError && !colonyFormOpen && !catFormOpen">{{ formError }}</p>
+      <p class="form-alert" role="alert" *ngIf="formError && !colonyFormOpen && !catFormOpen && !userFormOpen">{{ formError }}</p>
 
       <section class="hero-card" *ngIf="activeView === 'Inicio'">
         <div class="hero-copy">
@@ -289,6 +290,33 @@
 
       <!-- VOLUNTARIADO -->
       <section *ngIf="activeView === 'Voluntariado'" aria-label="Personas con acceso">
+        <form class="panel form-panel" *ngIf="userFormOpen" (ngSubmit)="saveUser()">
+          <h2>Nueva persona con acceso</h2>
+          <p class="form-alert" role="alert" *ngIf="formError">{{ formError }}</p>
+          <div class="form-grid">
+            <label class="form-field">Nombre
+              <input name="nombre" [(ngModel)]="userForm.nombre" required maxlength="100" />
+            </label>
+            <label class="form-field">Correo electrónico
+              <input type="email" name="email" [(ngModel)]="userForm.email" required maxlength="200" />
+            </label>
+            <label class="form-field">Contraseña
+              <input type="password" name="password" [(ngModel)]="userForm.password" required minlength="8" maxlength="100" autocomplete="new-password" />
+            </label>
+            <label class="form-field">Rol
+              <select name="rol" [(ngModel)]="userForm.rol">
+                <option *ngFor="let r of rolOptions" [value]="r.value">{{ r.label }}</option>
+              </select>
+            </label>
+            <label class="form-check">
+              <input type="checkbox" name="activo" [(ngModel)]="userForm.activo" /> Cuenta activa
+            </label>
+          </div>
+          <div class="form-actions">
+            <button class="primary-button" type="submit">Guardar</button>
+            <button class="btn-secondary" type="button" (click)="closeForms()">Cancelar</button>
+          </div>
+        </form>
         <p class="empty-state" *ngIf="usersMessage">{{ usersMessage }}</p>
         <div class="people-grid">
           <article class="person-card" *ngFor="let person of users">

@@ -6,7 +6,7 @@ import { LoginComponent } from './features/login/login.component';
 import { AuthService } from './core/auth.service';
 import { BackendColony, ColonyService } from './core/colony.service';
 import { BackendCat, CatPayload, CatService } from './core/cat.service';
-import { BackendUser, UserService } from './core/user.service';
+import { BackendUser, UserPayload, UserService } from './core/user.service';
 
 type CatFilter = 'Todos' | 'Esterilizados' | 'Pendientes';
 type Section = 'Inicio' | 'Colonias' | 'Gatos' | 'Voluntariado' | 'Calendario' | 'Perfil';
@@ -52,6 +52,14 @@ interface CatForm {
   observations: string;
 }
 
+interface UserForm {
+  nombre: string;
+  email: string;
+  password: string;
+  rol: string;
+  activo: boolean;
+}
+
 const PLACEHOLDER_IMAGE =
   'https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=600&q=80';
 
@@ -90,9 +98,11 @@ export class AppComponent {
   // Formularios
   colonyFormOpen = false;
   catFormOpen = false;
+  userFormOpen = false;
   formError: string | null = null;
   colonyForm: ColonyForm = this.emptyColonyForm();
   catForm: CatForm = this.emptyCatForm();
+  userForm: UserForm = this.emptyUserForm();
 
   readonly navigation: { label: Section; icon: string }[] = [
     { label: 'Inicio', icon: '⌂' },
@@ -132,6 +142,11 @@ export class AppComponent {
     CUIDADOR: 'Cuidador/a',
     CONSULTA: 'Consulta'
   };
+  readonly rolOptions = [
+    { value: 'CUIDADOR', label: 'Cuidador/a' },
+    { value: 'CONSULTA', label: 'Consulta' },
+    { value: 'ADMIN', label: 'Administración' }
+  ];
   readonly roles = [
     { name: 'Administración', description: 'Gestiona usuarios, colonias y gatos.' },
     { name: 'Cuidador/a', description: 'Registra y actualiza colonias y gatos.' },
@@ -353,7 +368,34 @@ export class AppComponent {
   closeForms(): void {
     this.colonyFormOpen = false;
     this.catFormOpen = false;
+    this.userFormOpen = false;
     this.formError = null;
+  }
+
+  // ---------- Voluntariado ----------
+  newUser(): void {
+    this.selectSection('Voluntariado');
+    this.userForm = this.emptyUserForm();
+    this.userFormOpen = true;
+  }
+
+  saveUser(): void {
+    if (this.usuario()?.rol !== 'ADMIN') {
+      this.formError = 'Solo la administración puede crear cuentas.';
+      return;
+    }
+    const f = this.userForm;
+    const payload: UserPayload = {
+      nombre: f.nombre.trim(),
+      email: f.email.trim(),
+      password: f.password,
+      rol: f.rol,
+      activo: f.activo
+    };
+    this.userService.createUser(payload).subscribe({
+      next: () => { this.closeForms(); this.loadUsers(this.usuario()!.rol); },
+      error: (e: HttpErrorResponse) => this.formError = this.errorText(e)
+    });
   }
 
   // ---------- Carga ----------
@@ -402,6 +444,10 @@ export class AppComponent {
       id: null, name: '', sex: 'UNKNOWN', birthDate: '', color: '', status: 'EN_COLONIA',
       neutered: false, identified: false, colonyId: null, observations: ''
     };
+  }
+
+  private emptyUserForm(): UserForm {
+    return { nombre: '', email: '', password: '', rol: 'CUIDADOR', activo: true };
   }
 
   private buildCalendar(year: number, month: number): (number | null)[][] {
