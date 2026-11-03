@@ -294,6 +294,12 @@ h1 { margin-bottom: 7px; color: #29243b; font-family: 'Manrope', sans-serif; fon
 .data-table .btn-secondary { padding: 7px 11px; font-size: 10px; }
 .row-actions { white-space: nowrap; text-align: right; }
 .form-actions button:disabled { opacity: .55; cursor: not-allowed; transform: none; filter: none; }
+.form-actions .primary-button[disabled] { opacity: .8; cursor: progress; }
+.submit-icon.spinning { display: inline-block; animation: submit-spin .9s linear infinite; }
+@keyframes submit-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .submit-icon.spinning { animation: none; }
+}
 
 @media (max-width: 700px) {
   .form-panel { gap: 15px; padding: 18px 15px 16px; }

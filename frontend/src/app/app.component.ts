@@ -104,6 +104,11 @@ export class AppComponent {
   catForm: CatForm = this.emptyCatForm();
   userForm: UserForm = this.emptyUserForm();
 
+  // Guardas de envío: evitan que varios clics dispare varias peticiones y duplique el registro.
+  savingColony = false;
+  savingCat = false;
+  savingUser = false;
+
   readonly navigation: { label: Section; icon: string }[] = [
     { label: 'Inicio', icon: '⌂' },
     { label: 'Colonias', icon: '♧' },
@@ -234,6 +239,21 @@ export class AppComponent {
       });
   }
 
+  // Etiquetas del botón de envío: cambian a "Creando/Guardando ..." mientras hay petición en marcha.
+  get colonySubmitLabel(): string {
+    const action = this.colonyForm.id === null ? 'Creando' : 'Guardando';
+    return this.savingColony ? `${action} colonia...` : `Guardar colonia`;
+  }
+
+  get catSubmitLabel(): string {
+    const action = this.catForm.id === null ? 'Creando' : 'Guardando';
+    return this.savingCat ? `${action} gato...` : `Guardar gato`;
+  }
+
+  get userSubmitLabel(): string {
+    return this.savingUser ? 'Creando acceso...' : 'Guardar acceso';
+  }
+
   roleLabel(rol: string | undefined): string {
     return rol ? (this.roleLabels[rol] ?? rol) : '';
   }
@@ -284,6 +304,8 @@ export class AppComponent {
   }
 
   saveColony(): void {
+    // Si ya hay una petición en marcha, se ignora el clic para no crear duplicados.
+    if (this.savingColony) return;
     const f = this.colonyForm;
     const payload = {
       name: f.name.trim(),
@@ -295,9 +317,14 @@ export class AppComponent {
       ? this.colonyService.createColony(payload)
       : this.colonyService.updateColony(f.id, payload);
 
+    this.savingColony = true;
+    this.formError = null;
     request.subscribe({
-      next: () => { this.closeForms(); this.loadColonies(); },
-      error: (e: HttpErrorResponse) => this.formError = this.errorText(e)
+      next: () => { this.savingColony = false; this.closeForms(); this.loadColonies(); },
+      error: (e: HttpErrorResponse) => {
+        this.savingColony = false;
+        this.formError = this.errorText(e);
+      }
     });
   }
 
@@ -335,6 +362,7 @@ export class AppComponent {
   }
 
   saveCat(): void {
+    if (this.savingCat) return;
     const f = this.catForm;
     const payload: CatPayload = {
       name: f.name.trim() || null,
@@ -351,9 +379,14 @@ export class AppComponent {
       ? this.catService.createCat(payload)
       : this.catService.updateCat(f.id, payload);
 
+    this.savingCat = true;
+    this.formError = null;
     request.subscribe({
-      next: () => { this.closeForms(); this.loadCats(); },
-      error: (e: HttpErrorResponse) => this.formError = this.errorText(e)
+      next: () => { this.savingCat = false; this.closeForms(); this.loadCats(); },
+      error: (e: HttpErrorResponse) => {
+        this.savingCat = false;
+        this.formError = this.errorText(e);
+      }
     });
   }
 
@@ -380,6 +413,7 @@ export class AppComponent {
   }
 
   saveUser(): void {
+    if (this.savingUser) return;
     if (this.usuario()?.rol !== 'ADMIN') {
       this.formError = 'Solo la administración puede crear cuentas.';
       return;
@@ -392,9 +426,14 @@ export class AppComponent {
       rol: f.rol,
       activo: f.activo
     };
+    this.savingUser = true;
+    this.formError = null;
     this.userService.createUser(payload).subscribe({
-      next: () => { this.closeForms(); this.loadUsers(this.usuario()!.rol); },
-      error: (e: HttpErrorResponse) => this.formError = this.errorText(e)
+      next: () => { this.savingUser = false; this.closeForms(); this.loadUsers(this.usuario()!.rol); },
+      error: (e: HttpErrorResponse) => {
+        this.savingUser = false;
+        this.formError = this.errorText(e);
+      }
     });
   }
 

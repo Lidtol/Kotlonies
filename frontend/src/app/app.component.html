@@ -193,8 +193,10 @@
             </div>
           </div>
           <div class="form-actions">
-            <button class="btn-secondary" type="button" (click)="closeForms()">Cancelar</button>
-            <button class="primary-button" type="submit"><span class="submit-icon">♡</span> Guardar colonia</button>
+            <button class="btn-secondary" type="button" [disabled]="savingColony" (click)="closeForms()">Cancelar</button>
+            <button class="primary-button" type="submit" [disabled]="savingColony" [attr.aria-busy]="savingColony">
+              <span class="submit-icon" [class.spinning]="savingColony" aria-hidden="true">{{ savingColony ? '◌' : '♡' }}</span> {{ colonySubmitLabel }}
+            </button>
           </div>
         </form>
 
@@ -315,8 +317,10 @@
             </div>
           </div>
           <div class="form-actions">
-            <button class="btn-secondary" type="button" (click)="closeForms()">Cancelar</button>
-            <button class="primary-button" type="submit"><span class="submit-icon">♡</span> Guardar gato</button>
+            <button class="btn-secondary" type="button" [disabled]="savingCat" (click)="closeForms()">Cancelar</button>
+            <button class="primary-button" type="submit" [disabled]="savingCat" [attr.aria-busy]="savingCat">
+              <span class="submit-icon" [class.spinning]="savingCat" aria-hidden="true">{{ savingCat ? '◌' : '♡' }}</span> {{ catSubmitLabel }}
+            </button>
           </div>
         </form>
 
@@ -411,8 +415,10 @@
             </div>
           </div>
           <div class="form-actions">
-            <button class="btn-secondary" type="button" (click)="closeForms()">Cancelar</button>
-            <button class="primary-button" type="submit"><span class="submit-icon">♡</span> Guardar acceso</button>
+            <button class="btn-secondary" type="button" [disabled]="savingUser" (click)="closeForms()">Cancelar</button>
+            <button class="primary-button" type="submit" [disabled]="savingUser" [attr.aria-busy]="savingUser">
+              <span class="submit-icon" [class.spinning]="savingUser" aria-hidden="true">{{ savingUser ? '◌' : '♡' }}</span> {{ userSubmitLabel }}
+            </button>
           </div>
         </form>
         <p class="empty-state" *ngIf="usersMessage">{{ usersMessage }}</p>
