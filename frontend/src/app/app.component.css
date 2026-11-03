@@ -120,6 +120,7 @@ h1 { margin-bottom: 7px; color: #29243b; font-family: 'Manrope', sans-serif; fon
 .activity-symbol { display: grid; flex: 0 0 auto; place-items: center; width: 34px; height: 34px; border-radius: 11px; font-size: 16px; }
 .pink-bg { color: #d86aa8; background: #ffebf5; }
 .violet-bg { color: #9473cc; background: #f0eaff; }
+.blue-bg { color: #6b91ce; background: #eaf2ff; }
 .green-bg { color: #48ad8b; background: #e5f8ef; }
 .activity-item p { margin: 2px 0 5px; color: #69627c; font-size: 10px; line-height: 1.5; }
 .activity-item p strong { color: #39334b; }
@@ -244,6 +245,72 @@ h1 { margin-bottom: 7px; color: #29243b; font-family: 'Manrope', sans-serif; fon
 .role-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
 .role-list li { padding: 13px 15px; border: 1px solid #f0edf5; border-radius: 12px; color: #69627c; font-size: 11px; line-height: 1.5; }
 .role-list strong { display: block; color: #39334b; font-size: 12px; }
+
+/* ===== Formularios de alta (colonia, gato, voluntariado) ===== */
+.form-panel { display: grid; gap: 18px; margin-bottom: 22px; padding: 24px 26px 22px; border-color: #e9e2f2; box-shadow: 0 10px 30px #2b20490f; }
+.form-enter { animation: form-enter .28s ease-out; }
+@keyframes form-enter { from { opacity: 0; transform: translateY(-10px) scale(.99); } to { opacity: 1; transform: none; } }
+
+.form-heading { display: flex; align-items: flex-start; gap: 14px; }
+.form-icon { display: grid; flex: 0 0 auto; place-items: center; width: 42px; height: 42px; border-radius: 13px; font-size: 20px; }
+.form-heading-text { min-width: 0; flex: 1; }
+.form-heading .eyebrow { margin-bottom: 4px; }
+.form-heading h2 { margin-bottom: 4px; color: #2e2941; font-family: 'Manrope', sans-serif; font-size: 18px; font-weight: 800; letter-spacing: -.5px; }
+.form-hint { margin-bottom: 0; color: #a19bad; font-size: 11px; }
+.form-close { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 9px; font-size: 13px; transition: color .18s, background .18s; }
+.form-close:hover { color: #c1558f; background: #ffebf5; }
+
+.form-alert { margin: 0; padding: 11px 13px; border: 1px solid #f5c6d9; border-radius: 10px; color: #b64a7f; background: #ffebf5; font-size: 11px; line-height: 1.5; }
+
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 18px; }
+.field { display: grid; gap: 7px; min-width: 0; }
+.field-wide { grid-column: 1 / -1; }
+.field-label { color: #5d566f; font-size: 11px; font-weight: 600; }
+.field-required { margin-left: 2px; color: #e568ae; font-style: normal; }
+.field-box { display: flex; align-items: flex-start; gap: 9px; padding: 0 12px; border: 1px solid #efedf4; border-radius: 10px; color: #b3a5c4; background: #fcfbfe; transition: border-color .18s, box-shadow .18s; }
+.field-box:focus-within { border-color: #d7b1e0; background: #fff; box-shadow: 0 0 0 3px #f6eafa; }
+.field-icon { display: grid; place-items: center; flex: 0 0 auto; width: 17px; padding-top: 11px; font-size: 15px; }
+.field-box input, .field-box select, .field-box textarea { width: 100%; min-width: 0; padding: 11px 0; border: 0; outline: 0; color: #4c465f; background: transparent; font-size: 12px; font-family: inherit; }
+.field-box input::placeholder, .field-box textarea::placeholder { color: #bfb9cd; }
+.field-box select { padding: 11px 0; appearance: none; cursor: pointer; }
+.field-box textarea { padding: 11px 0; border-radius: 0; line-height: 1.5; resize: vertical; }
+.field-box select:disabled, .field-box input:disabled { cursor: not-allowed; opacity: .55; }
+
+.form-checks { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 12px 22px; }
+.checkbox { display: flex; align-items: center; gap: 9px; cursor: pointer; }
+.checkbox input { position: absolute; opacity: 0; pointer-events: none; }
+.checkbox-box { display: grid; place-items: center; width: 19px; height: 19px; border: 1px solid #e3c8eb; border-radius: 6px; color: transparent; background: #fcfbfe; font-size: 11px; transition: background .18s, color .18s, border-color .18s; }
+.checkbox input:checked + .checkbox-box { border-color: transparent; color: #fff; background: linear-gradient(100deg, #a65bb7, #e16db2); }
+.checkbox input:focus-visible + .checkbox-box { box-shadow: 0 0 0 3px #f6eafa; }
+.checkbox-text { color: #716a89; font-size: 11px; }
+
+.form-actions { display: flex; justify-content: flex-end; gap: 10px; padding-top: 4px; border-top: 1px solid #f2eff6; }
+.form-actions .primary-button { font-size: 12px; transition: filter .18s, transform .18s; }
+.form-actions .primary-button .submit-icon { font-size: 14px; }
+.btn-secondary { padding: 12px 16px; border: 1px solid #eeebf4; border-radius: 10px; color: #716a89; background: #fff; font-size: 12px; font-weight: 600; transition: border-color .18s, color .18s, background .18s; }
+.btn-secondary:hover { border-color: #e3c8eb; color: #a25eb5; background: #fcfaff; }
+.tile-actions { display: flex; gap: 8px; margin-top: 13px; }
+.tile-actions .btn-secondary { padding: 8px 12px; font-size: 11px; }
+.data-table .btn-secondary { padding: 7px 11px; font-size: 10px; }
+.row-actions { white-space: nowrap; text-align: right; }
+.form-actions button:disabled { opacity: .55; cursor: not-allowed; transform: none; filter: none; }
+.form-actions .primary-button[disabled] { opacity: .8; cursor: progress; }
+.submit-icon.spinning { display: inline-block; animation: submit-spin .9s linear infinite; }
+@keyframes submit-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .submit-icon.spinning { animation: none; }
+}
+
+@media (max-width: 700px) {
+  .form-panel { gap: 15px; padding: 18px 15px 16px; }
+  .form-grid { grid-template-columns: minmax(0, 1fr); gap: 13px; }
+  .form-heading h2 { font-size: 16px; }
+  .form-actions { flex-wrap: wrap; }
+  .form-actions .btn-secondary, .form-actions .primary-button { flex: 1 1 auto; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .form-enter { animation: none; }
+}
 
 @media (max-width: 1100px) {
   .calendar-layout, .profile-layout { grid-template-columns: minmax(0, 1fr); }
