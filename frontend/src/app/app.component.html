@@ -23,6 +23,7 @@
         <span class="nav-icon" aria-hidden="true">{{ item.icon }}</span>
         <span>{{ item.label }}</span>
         <span *ngIf="item.label === 'Colonias'" class="nav-count">{{ colonyCount }}</span>
+        <span *ngIf="item.label === 'Gatos'" class="nav-count">{{ catCount }}</span>
       </button>
     </nav>
 

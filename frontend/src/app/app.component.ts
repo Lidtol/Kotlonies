@@ -193,6 +193,10 @@ export class AppComponent {
     return this.colonyCountSignal();
   }
 
+  get catCount(): number {
+    return this.catCountSignal();
+  }
+
   get stats() {
     return [
       { label: 'Colonias activas', value: String(this.activeColonyCountSignal()), icon: '⌂', tone: 'violet' },
