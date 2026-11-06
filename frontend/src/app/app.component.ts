@@ -109,14 +109,30 @@ export class AppComponent {
   savingCat = false;
   savingUser = false;
 
-  readonly navigation: { label: Section; icon: string }[] = [
+  // Todas las entradas del menú; se filtran según el rol al mostrarlas.
+  private readonly allNavigation: { label: Section; icon: string; adminOnly?: boolean }[] = [
     { label: 'Inicio', icon: '⌂' },
     { label: 'Colonias', icon: '♧' },
     { label: 'Gatos', icon: '♢' },
-    { label: 'Voluntariado', icon: '♙' },
+    { label: 'Voluntariado', icon: '♙', adminOnly: true },
     { label: 'Calendario', icon: '▦' },
     { label: 'Perfil', icon: '◉' }
   ];
+
+  /**
+   * Entries shown in the left menu. "Voluntariado" is only for ADMIN; the endpoint
+   * behind it is already restricted in the backend, so the menu stays coherent with it.
+   * It is a getter because the template uses *ngFor, which does not unwrap signals.
+   */
+  get navigation(): { label: Section; icon: string }[] {
+    return this.allNavigation
+      .filter(item => !item.adminOnly || this.esAdministrador())
+      .map(item => ({ label: item.label, icon: item.icon }));
+  }
+
+  esAdministrador(): boolean {
+    return this.usuario()?.rol === 'ADMIN';
+  }
 
   readonly subtitles: Record<Section, string> = {
     Inicio: 'Esto es lo que está pasando hoy en tus colonias.',
@@ -191,6 +207,10 @@ export class AppComponent {
   // ---------- Datos derivados ----------
   get colonyCount(): number {
     return this.colonyCountSignal();
+  }
+
+  get catCount(): number {
+    return this.catCountSignal();
   }
 
   get stats() {
@@ -268,6 +288,8 @@ export class AppComponent {
 
   // ---------- Navegación ----------
   selectSection(section: Section): void {
+    // Barrera adicional: sin rol de administración no se puede abrir el voluntariado.
+    if (section === 'Voluntariado' && !this.esAdministrador()) return;
     this.activeView = section;
     this.searchTerm = '';
     this.catFilter = 'Todos';

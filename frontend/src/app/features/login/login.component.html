@@ -30,7 +30,9 @@
       <h1>¡Hola de nuevo! <span class="wave">✦</span></h1>
       <p class="page-subtitle">Accede para continuar cuidando de tus colonias.</p>
 
-      <div class="alert" role="alert" *ngIf="errorMessage">{{ errorMessage }}</div>
+<div class="alert" role="alert" *ngIf="errorMessage() as message">
+  {{ message }}
+</div>
 
       <form (ngSubmit)="submit()" novalidate>
         <label class="field">
@@ -72,15 +74,20 @@
           <button class="text-button" type="button">¿Olvidaste tu contraseña?</button>
         </div>
 
-        <button class="primary-button submit-button" type="submit" [disabled]="loading">
-          <span class="submit-icon">♡</span> {{ loading ? 'Comprobando...' : 'Entrar' }}
-        </button>
-      </form>
+<button
+  class="primary-button submit-button"
+  type="submit"
+  [disabled]="loading()"
+>
+  <span class="submit-icon">♡</span>
+  {{ loading() ? 'Comprobando...' : 'Entrar' }}
+</button>
+</form>
 
-      <p class="signup-line">
-        ¿Todavía no tienes cuenta?
-        <button class="text-button" type="button">Solicita acceso</button>
-      </p>
+<p class="signup-line">
+  ¿Todavía no tienes cuenta?
+  <button class="text-button" type="button">Solicita acceso</button>
+</p>
 
       <div class="demo-note">
         <span class="demo-icon" aria-hidden="true">⌕</span>
