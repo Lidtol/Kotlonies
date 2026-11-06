@@ -364,7 +364,7 @@
       </section>
 
       <!-- VOLUNTARIADO -->
-      <section *ngIf="activeView === 'Voluntariado'" aria-label="Personas con acceso">
+      <section *ngIf="activeView === 'Voluntariado' && esAdministrador()" aria-label="Personas con acceso">
         <form class="panel form-panel form-enter" *ngIf="userFormOpen" (ngSubmit)="saveUser()">
           <div class="form-heading">
             <span class="form-icon blue-bg" aria-hidden="true">♙</span>
