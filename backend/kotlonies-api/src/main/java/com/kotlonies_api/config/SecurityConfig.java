@@ -1,6 +1,8 @@
 
 package com.kotlonies_api.config;
 
+import com.kotlonies_api.repository.UsuarioRepository;
+import org.springframework.security.web.csrf.CsrfFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
@@ -61,10 +63,15 @@ public class SecurityConfig {
                                 response.sendError(HttpStatus.FORBIDDEN.value())
                         )
                 )
+                .addFilterBefore(
+        new ActiveUserFilter(usuarioRepository),
+        CsrfFilter.class
+)
                 .formLogin(form -> form.disable())
                 .logout(logout -> logout.disable());
-
         return http.build();
+
+        
     }
 
     @Bean
@@ -116,6 +123,21 @@ public class SecurityConfig {
             return StringUtils.hasText(headerValue)
                     ? this.plain.resolveCsrfTokenValue(request, csrfToken)
                     : this.xor.resolveCsrfTokenValue(request, csrfToken);
+
+
+                }
+
+
+
+
+
         }
-    }
+
+
+        private final UsuarioRepository usuarioRepository;
+
+public SecurityConfig(UsuarioRepository usuarioRepository) {
+    this.usuarioRepository = usuarioRepository;
+}
+
 }
