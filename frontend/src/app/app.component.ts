@@ -7,9 +7,25 @@ import { AuthService } from './core/auth.service';
 import { BackendColony, ColonyService } from './core/colony.service';
 import { BackendCat, CatPayload, CatService } from './core/cat.service';
 import { BackendUser, UserPayload, UserService } from './core/user.service';
+import {
+  BackendIncident,
+  IncidentPayload,
+  IncidentService,
+  IncidentType,
+  IncidentPriority,
+  IncidentStatus
+} from './core/incident.service';
+
 
 type CatFilter = 'Todos' | 'Esterilizados' | 'Pendientes';
-type Section = 'Inicio' | 'Colonias' | 'Gatos' | 'Voluntariado' | 'Calendario' | 'Perfil';
+type Section =
+  | 'Inicio'
+  | 'Colonias'
+  | 'Gatos'
+  | 'Incidencias'
+  | 'Voluntariado'
+  | 'Calendario'
+  | 'Perfil';
 type View = 'Login' | Section;
 
 interface ColonyView {
@@ -60,6 +76,17 @@ interface UserForm {
   activo: boolean;
 }
 
+interface IncidentForm {
+  id: number | null;
+  titulo: string;
+  descripcion: string;
+  tipo: IncidentType;
+  prioridad: IncidentPriority;
+  estado: IncidentStatus;
+  catId: number | null;
+  colonyId: number | null;
+}
+
 const PLACEHOLDER_IMAGE =
   'https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=600&q=80';
 
@@ -75,7 +102,7 @@ export class AppComponent {
   private readonly colonyService = inject(ColonyService);
   private readonly catService = inject(CatService);
   private readonly userService = inject(UserService);
-
+  private readonly incidentService = inject(IncidentService);
   readonly usuario = this.auth.usuario;
   readonly cargandoSesion = this.auth.cargando;
 
@@ -86,6 +113,11 @@ export class AppComponent {
   private readonly rawCats = signal<BackendCat[]>([]);
   users: BackendUser[] = [];
   usersMessage: string | null = null;
+
+  // Incidencias
+  private readonly rawIncidents = signal<BackendIncident[]>([]);
+  incidentFormOpen = false;
+  incidentForm: IncidentForm = this.emptyIncidentForm();
 
   // Datos derivados como signals: los arrays base deben ser signals también; si son
   // propiedades corrientes, el computed no se entera de su cambio y mostraría siempre 0.
@@ -104,16 +136,20 @@ export class AppComponent {
   catForm: CatForm = this.emptyCatForm();
   userForm: UserForm = this.emptyUserForm();
 
+  
+
   // Guardas de envío: evitan que varios clics dispare varias peticiones y duplique el registro.
   savingColony = false;
   savingCat = false;
   savingUser = false;
+  savingIncident = false;
 
   // Todas las entradas del menú; se filtran según el rol al mostrarlas.
   private readonly allNavigation: { label: Section; icon: string; adminOnly?: boolean }[] = [
     { label: 'Inicio', icon: '⌂' },
     { label: 'Colonias', icon: '♧' },
     { label: 'Gatos', icon: '♢' },
+    { label: 'Incidencias', icon: '⚑' },
     { label: 'Voluntariado', icon: '♙', adminOnly: true },
     { label: 'Calendario', icon: '▦' },
     { label: 'Perfil', icon: '◉' }
@@ -140,7 +176,8 @@ export class AppComponent {
     Gatos: 'Fichas de los gatos, incluidos los que aún no tienen nombre.',
     Voluntariado: 'Las personas con acceso a la plataforma y su rol.',
     Calendario: 'Visitas, alimentación y revisiones previstas.',
-    Perfil: 'Tus datos y los permisos de cada rol.'
+    Perfil: 'Tus datos y los permisos de cada rol.',
+    Incidencias: 'Registra y consulta los problemas detectados en las colonias.'
   };
 
   readonly catFilters: CatFilter[] = ['Todos', 'Esterilizados', 'Pendientes'];
@@ -168,6 +205,29 @@ export class AppComponent {
     { value: 'CONSULTA', label: 'Consulta' },
     { value: 'ADMIN', label: 'Administración' }
   ];
+
+  readonly incidentTypeLabels: Record<IncidentType, string> = {
+    SALUD: 'Salud',
+    ALIMENTACION: 'Alimentación',
+    ABANDONO: 'Abandono',
+    SEGURIDAD: 'Seguridad',
+    OTRO: 'Otro'
+  };
+  readonly incidentPriorityLabels: Record<IncidentPriority, string> = {
+    BAJA: 'Baja',
+    MEDIA: 'Media',
+    ALTA: 'Alta',
+    URGENTE: 'Urgente'
+  };
+  readonly incidentStatusLabels: Record<IncidentStatus, string> = {
+    ABIERTA: 'Abierta',
+    EN_PROCESO: 'En proceso',
+    RESUELTA: 'Resuelta',
+    CERRADA: 'Cerrada'
+  };
+  readonly incidentTypeOptions: IncidentType[] = ['SALUD', 'ALIMENTACION', 'ABANDONO', 'SEGURIDAD', 'OTRO'];
+  readonly incidentPriorityOptions: IncidentPriority[] = ['BAJA', 'MEDIA', 'ALTA', 'URGENTE'];
+  readonly incidentStatusOptions: IncidentStatus[] = ['ABIERTA', 'EN_PROCESO', 'RESUELTA', 'CERRADA'];
   readonly roles = [
     { name: 'Administración', description: 'Gestiona usuarios, colonias y gatos.' },
     { name: 'Cuidador/a', description: 'Registra y actualiza colonias y gatos.' },
@@ -194,11 +254,13 @@ export class AppComponent {
         if (this.activeView === 'Login') this.activeView = 'Inicio';
         this.loadColonies();
         this.loadCats();
+        this.loadIncidents();
         this.loadUsers(user.rol);
       } else {
         this.activeView = 'Login';
         this.rawColonies.set([]);
         this.rawCats.set([]);
+        this.rawIncidents.set([]);
         this.users = [];
       }
     });
@@ -238,6 +300,32 @@ export class AppComponent {
 
   get colonyOptions(): { id: number; name: string }[] {
     return this.rawColonies().filter(c => c.active).map(c => ({ id: c.id, name: c.name }));
+  }
+
+  get filteredIncidents(): BackendIncident[] {
+    const term = this.searchTerm.trim().toLocaleLowerCase('es');
+    return this.rawIncidents().filter(incident => {
+      const text = [
+        incident.titulo,
+        incident.descripcion,
+        this.incidentTypeLabels[incident.tipo],
+        this.incidentPriorityLabels[incident.prioridad],
+        this.incidentStatusLabels[incident.estado],
+        incident.catName ?? '',
+        incident.colonyName ?? ''
+      ].join(' ').toLocaleLowerCase('es');
+      return !term || text.includes(term);
+    });
+  }
+
+  get puedeGestionarIncidencias(): boolean {
+    const rol = this.usuario()?.rol;
+    return rol === 'ADMIN' || rol === 'CUIDADOR';
+  }
+
+  get incidentSubmitLabel(): string {
+    const action = this.incidentForm.id === null ? 'Creando' : 'Guardando';
+    return this.savingIncident ? `${action} incidencia...` : 'Guardar incidencia';
   }
 
   get filteredCats(): CatView[] {
@@ -424,6 +512,7 @@ export class AppComponent {
     this.colonyFormOpen = false;
     this.catFormOpen = false;
     this.userFormOpen = false;
+    this.incidentFormOpen = false;
     this.formError = null;
   }
 
@@ -459,6 +548,98 @@ export class AppComponent {
     });
   }
 
+  // ---------- Incidencias ----------
+  newIncident(): void {
+    if (!this.puedeGestionarIncidencias) {
+      this.formError = 'No tienes permisos para crear incidencias.';
+      return;
+    }
+    this.selectSection('Incidencias');
+    this.incidentForm = this.emptyIncidentForm();
+    this.incidentFormOpen = true;
+  }
+
+  editIncident(incident: BackendIncident): void {
+    if (!this.puedeGestionarIncidencias) return;
+
+    this.closeForms();
+    this.incidentForm = {
+      id: incident.id,
+      titulo: incident.titulo ?? '',
+      descripcion: incident.descripcion ?? '',
+      tipo: incident.tipo,
+      prioridad: incident.prioridad,
+      estado: incident.estado,
+      catId: incident.catId ?? null,
+      colonyId: incident.colonyId ?? null
+    };
+    this.incidentFormOpen = true;
+  }
+
+  saveIncident(): void {
+    if (this.savingIncident) return;
+    if (!this.puedeGestionarIncidencias) {
+      this.formError = 'No tienes permisos para gestionar incidencias.';
+      return;
+    }
+
+    const f = this.incidentForm;
+    if (!f.titulo.trim() || !f.descripcion.trim()) {
+      this.formError = 'El título y la descripción son obligatorios.';
+      return;
+    }
+
+    const payload: IncidentPayload = {
+      titulo: f.titulo.trim(),
+      descripcion: f.descripcion.trim(),
+      tipo: f.tipo,
+      prioridad: f.prioridad,
+      estado: f.estado,
+      catId: f.catId,
+      colonyId: f.colonyId
+    };
+
+    const request = f.id === null
+      ? this.incidentService.createIncident(payload)
+      : this.incidentService.updateIncident(f.id, payload);
+
+    this.savingIncident = true;
+    this.formError = null;
+    request.subscribe({
+      next: () => {
+        this.savingIncident = false;
+        this.closeForms();
+        this.loadIncidents();
+      },
+      error: (e: HttpErrorResponse) => {
+        this.savingIncident = false;
+        this.formError = this.errorText(e);
+      }
+    });
+  }
+
+  deleteIncident(incident: BackendIncident): void {
+    if (!this.puedeGestionarIncidencias) return;
+    if (!confirm(`¿Eliminar la incidencia «${incident.titulo}»?`)) return;
+
+    this.incidentService.deleteIncident(incident.id).subscribe({
+      next: () => this.loadIncidents(),
+      error: (e: HttpErrorResponse) => this.formError = this.errorText(e)
+    });
+  }
+
+  incidentTypeLabel(tipo: IncidentType): string {
+    return this.incidentTypeLabels[tipo] ?? tipo;
+  }
+
+  incidentPriorityLabel(prioridad: IncidentPriority): string {
+    return this.incidentPriorityLabels[prioridad] ?? prioridad;
+  }
+
+  incidentStatusLabel(estado: IncidentStatus): string {
+    return this.incidentStatusLabels[estado] ?? estado;
+  }
+
   // ---------- Carga ----------
   private loadColonies(): void {
     this.colonyService.getColonies().subscribe({
@@ -471,6 +652,13 @@ export class AppComponent {
     this.catService.getCats().subscribe({
       next: cats => this.rawCats.set(cats),
       error: () => this.rawCats.set([])
+    });
+  }
+
+  private loadIncidents(): void {
+    this.incidentService.getIncidents().subscribe({
+      next: incidents => this.rawIncidents.set(incidents),
+      error: () => this.rawIncidents.set([])
     });
   }
 
@@ -509,6 +697,19 @@ export class AppComponent {
 
   private emptyUserForm(): UserForm {
     return { nombre: '', email: '', password: '', rol: 'CUIDADOR', activo: true };
+  }
+
+  private emptyIncidentForm(): IncidentForm {
+    return {
+      id: null,
+      titulo: '',
+      descripcion: '',
+      tipo: 'OTRO',
+      prioridad: 'MEDIA',
+      estado: 'ABIERTA',
+      catId: null,
+      colonyId: null
+    };
   }
 
   private buildCalendar(year: number, month: number): (number | null)[][] {

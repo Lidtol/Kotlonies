@@ -24,7 +24,9 @@
         <span>{{ item.label }}</span>
         <span *ngIf="item.label === 'Colonias'" class="nav-count">{{ colonyCount }}</span>
         <span *ngIf="item.label === 'Gatos'" class="nav-count">{{ catCount }}</span>
+        <span *ngIf="item.label === 'Incidencias'" class="nav-count">{{ filteredIncidents.length }}</span>
       </button>
+      
     </nav>
 
     <div class="sidebar-help">
@@ -58,12 +60,13 @@
           <h1 *ngIf="activeView !== 'Inicio'">{{ activeView }}</h1>
           <p class="page-subtitle">{{ subtitles[activeView] }}</p>
         </div>
-        <button class="primary-button" type="button" (click)="newCat()" *ngIf="activeView !== 'Colonias' && activeView !== 'Voluntariado'"><span>＋</span> Añadir Gato</button>
+        <button class="primary-button" type="button" (click)="newCat()" *ngIf="activeView === 'Inicio' || activeView === 'Gatos'"><span>＋</span> Añadir Gato</button>
         <button class="primary-button" type="button" (click)="newColony()" *ngIf="activeView === 'Colonias'"><span>＋</span> Añadir Colonia</button>
+        <button class="primary-button" type="button" (click)="newIncident()" *ngIf="activeView === 'Incidencias' && puedeGestionarIncidencias"><span>＋</span> Nueva incidencia</button>
         <button class="primary-button" type="button" (click)="newUser()" *ngIf="activeView === 'Voluntariado'"><span>＋</span> Añadir Voluntariado</button>
       </section>
 
-      <p class="form-alert" role="alert" *ngIf="formError && !colonyFormOpen && !catFormOpen && !userFormOpen">{{ formError }}</p>
+      <p class="form-alert" role="alert" *ngIf="formError && !colonyFormOpen && !catFormOpen && !userFormOpen && !incidentFormOpen">{{ formError }}</p>
 
       <section class="hero-card" *ngIf="activeView === 'Inicio'">
         <div class="hero-copy">
@@ -361,6 +364,154 @@
           </div>
           <div class="empty-state" *ngIf="filteredCats.length === 0">No se han encontrado gatos con esos criterios.</div>
         </div>
+      </section>
+
+
+      <!-- INCIDENCIAS -->
+      <section *ngIf="activeView === 'Incidencias'" aria-label="Listado de incidencias">
+        <div class="toolbar">
+          <label class="search-box">
+            <span aria-hidden="true">⌕</span>
+            <input type="search" placeholder="Buscar por título, descripción, gato o colonia..." aria-label="Buscar incidencias" [(ngModel)]="searchTerm" />
+          </label>
+          <p class="result-count" aria-live="polite">{{ filteredIncidents.length }} incidencias</p>
+        </div>
+
+        <form class="panel form-panel form-enter" *ngIf="incidentFormOpen" (ngSubmit)="saveIncident()">
+          <div class="form-heading">
+            <span class="form-icon pink-bg" aria-hidden="true">⚑</span>
+            <div class="form-heading-text">
+              <p class="eyebrow">INCIDENCIAS</p>
+              <h2>{{ incidentForm.id === null ? 'Nueva incidencia' : 'Editar incidencia' }}</h2>
+              <p class="form-hint">Registra un problema y, si procede, relaciónalo con un gato o una colonia.</p>
+            </div>
+            <button class="icon-button form-close" type="button" aria-label="Cerrar formulario" (click)="closeForms()">✕</button>
+          </div>
+          <p class="form-alert" role="alert" *ngIf="formError">{{ formError }}</p>
+
+          <div class="form-grid">
+            <label class="field field-wide">
+              <span class="field-label">Título <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">⚑</span>
+                <input name="titulo" [(ngModel)]="incidentForm.titulo" required maxlength="120" placeholder="Ej. Gato con posible lesión" />
+              </span>
+            </label>
+
+            <label class="field field-wide">
+              <span class="field-label">Descripción <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">✎</span>
+                <textarea name="descripcion" [(ngModel)]="incidentForm.descripcion" required maxlength="2000" rows="4" placeholder="Describe qué ha ocurrido y dónde..."></textarea>
+              </span>
+            </label>
+
+            <label class="field">
+              <span class="field-label">Tipo</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">◇</span>
+                <select name="tipo" [(ngModel)]="incidentForm.tipo">
+                  <option *ngFor="let tipo of incidentTypeOptions" [ngValue]="tipo">{{ incidentTypeLabels[tipo] }}</option>
+                </select>
+              </span>
+            </label>
+
+            <label class="field">
+              <span class="field-label">Prioridad</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">!</span>
+                <select name="prioridad" [(ngModel)]="incidentForm.prioridad">
+                  <option *ngFor="let prioridad of incidentPriorityOptions" [ngValue]="prioridad">{{ incidentPriorityLabels[prioridad] }}</option>
+                </select>
+              </span>
+            </label>
+
+            <label class="field">
+              <span class="field-label">Estado</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">◷</span>
+                <select name="estado" [(ngModel)]="incidentForm.estado">
+                  <option *ngFor="let estado of incidentStatusOptions" [ngValue]="estado">{{ incidentStatusLabels[estado] }}</option>
+                </select>
+              </span>
+            </label>
+
+            <label class="field">
+              <span class="field-label">Gato relacionado</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">♢</span>
+                <select name="catId" [(ngModel)]="incidentForm.catId">
+                  <option [ngValue]="null">Sin gato relacionado</option>
+                  <option *ngFor="let cat of filteredCats" [ngValue]="cat.id">{{ cat.name || ('Gato #' + cat.id) }}</option>
+                </select>
+              </span>
+            </label>
+
+            <label class="field">
+              <span class="field-label">Colonia relacionada</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">⌂</span>
+                <select name="colonyId" [(ngModel)]="incidentForm.colonyId">
+                  <option [ngValue]="null">Sin colonia relacionada</option>
+                  <option *ngFor="let colony of colonyOptions" [ngValue]="colony.id">{{ colony.name }}</option>
+                </select>
+              </span>
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn-secondary" type="button" [disabled]="savingIncident" (click)="closeForms()">Cancelar</button>
+            <button class="primary-button" type="submit" [disabled]="savingIncident" [attr.aria-busy]="savingIncident">
+              <span class="submit-icon" [class.spinning]="savingIncident" aria-hidden="true">{{ savingIncident ? '◌' : '♡' }}</span>
+              {{ incidentSubmitLabel }}
+            </button>
+          </div>
+        </form>
+
+        <div class="panel table-panel">
+          <div class="table-scroll">
+            <table class="data-table">
+              <caption class="sr-only">Listado de incidencias registradas</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Incidencia</th>
+                  <th scope="col">Tipo</th>
+                  <th scope="col">Prioridad</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Gato / colonia</th>
+                  <th scope="col" *ngIf="puedeGestionarIncidencias"><span class="sr-only">Acciones</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let incident of filteredIncidents">
+                  <th scope="row">
+                    <div class="cell-cat">
+                      <span class="activity-symbol pink-bg" aria-hidden="true">⚑</span>
+                      <span>
+                        <strong>{{ incident.titulo }}</strong>
+                        <small>{{ incident.descripcion }}</small>
+                      </span>
+                    </div>
+                  </th>
+                  <td>{{ incidentTypeLabel(incident.tipo) }}</td>
+                  <td><span class="status-pill" [class.pending]="incident.prioridad === 'ALTA' || incident.prioridad === 'URGENTE'">{{ incidentPriorityLabel(incident.prioridad) }}</span></td>
+                  <td><span class="status-pill" [class.pending]="incident.estado === 'ABIERTA' || incident.estado === 'EN_PROCESO'">{{ incidentStatusLabel(incident.estado) }}</span></td>
+                  <td>
+                    <span *ngIf="incident.catName">{{ incident.catName }}</span>
+                    <span *ngIf="!incident.catName && incident.colonyName">{{ incident.colonyName }}</span>
+                    <span *ngIf="!incident.catName && !incident.colonyName">Sin relación</span>
+                  </td>
+                  <td class="row-actions" *ngIf="puedeGestionarIncidencias">
+                    <button type="button" class="btn-secondary" (click)="editIncident(incident)">Editar</button>
+                    <button type="button" class="btn-secondary" (click)="deleteIncident(incident)">Eliminar</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="empty-state" *ngIf="filteredIncidents.length === 0">No hay incidencias que coincidan con la búsqueda.</div>
+        </div>
+        <p class="empty-state" *ngIf="!puedeGestionarIncidencias">Tu rol permite consultar las incidencias, pero no modificarlas.</p>
       </section>
 
       <!-- VOLUNTARIADO -->
