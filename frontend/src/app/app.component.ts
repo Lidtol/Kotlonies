@@ -135,6 +135,7 @@ export class AppComponent {
   colonyForm: ColonyForm = this.emptyColonyForm();
   catForm: CatForm = this.emptyCatForm();
   userForm: UserForm = this.emptyUserForm();
+  catColonyValidationError = false;
 
   
 
@@ -169,6 +170,22 @@ export class AppComponent {
   esAdministrador(): boolean {
     return this.usuario()?.rol === 'ADMIN';
   }
+
+  trackByItem(index: number, item: any): number | string {
+  if (item === null || item === undefined) {
+    return index;
+  }
+
+  if (typeof item !== 'object') {
+    return item;
+  }
+
+  return item.id
+    ?? item.label
+    ?? item.name
+    ?? item.value
+    ?? index;
+}
 
   readonly subtitles: Record<Section, string> = {
     Inicio: 'Esto es lo que está pasando hoy en tus colonias.',
@@ -459,16 +476,18 @@ saveColony(): void {
   }
 
   // ---------- Gatos ----------
-  newCat(): void {
-    this.selectSection('Gatos');
-    this.catForm = this.emptyCatForm();
-    this.catFormOpen = true;
-  }
+newCat(): void {
+  this.selectSection('Gatos');
+  this.catForm = this.emptyCatForm();
+  this.catColonyValidationError = false;
+  this.catFormOpen = true;
+}
 
   editCat(cat: CatView): void {
     const raw = this.rawCats().find(c => c.id === cat.id);
     if (!raw) return;
     this.closeForms();
+    this.catColonyValidationError = false;
     this.catForm = {
       id: raw.id,
       name: raw.name ?? '',
@@ -485,8 +504,18 @@ saveColony(): void {
   }
 
   saveCat(): void {
-    if (this.savingCat) return;
-    const f = this.catForm;
+if (this.savingCat) return;
+
+this.formError = null;
+
+this.catColonyValidationError =
+  this.requiresCatColony && this.catForm.colonyId == null;
+
+if (this.catColonyValidationError) {
+  return;
+}
+
+const f = this.catForm;
     const payload: CatPayload = {
       name: f.name.trim() || null,
       sex: f.sex,
@@ -495,7 +524,7 @@ saveColony(): void {
       status: f.status,
       neutered: f.neutered,
       identified: f.identified,
-      colonyId: f.colonyId,
+      colonyId: f.colonyId ?? null,
       observations: f.observations.trim() || null
     };
     const request = f.id === null
@@ -527,6 +556,7 @@ saveColony(): void {
     this.userFormOpen = false;
     this.incidentFormOpen = false;
     this.formError = null;
+    this.catColonyValidationError = false;
   }
 
   // ---------- Voluntariado ----------
@@ -737,4 +767,22 @@ saveColony(): void {
     for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
     return weeks;
   }
+
+get requiresCatColony(): boolean {
+  return this.catForm.status === 'EN_COLONIA';
 }
+
+onCatStatusChange(): void {
+  if (!this.requiresCatColony) {
+    this.catColonyValidationError = false;
+  }
+}
+
+onCatColonyChange(): void {
+  if (this.catForm.colonyId !== null) {
+    this.catColonyValidationError = false;
+  }
+}
+
+}
+

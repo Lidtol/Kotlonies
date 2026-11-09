@@ -14,7 +14,7 @@
     <div class="sidebar-caption">MENÚ PRINCIPAL</div>
     <nav class="navigation" aria-label="Navegación principal">
       <button
-        *ngFor="let item of navigation"
+        *ngFor="let item of navigation; trackBy: trackByItem"
         type="button"
         class="nav-item"
         [class.active]="activeView === item.label"
@@ -81,7 +81,7 @@
       </section>
 
       <section class="stats-grid" aria-label="Resumen" *ngIf="activeView === 'Inicio'">
-        <article class="stat-card" *ngFor="let stat of stats">
+        <article class="stat-card" *ngFor="let stat of stats; trackBy: trackByItem">
           <div class="stat-topline">
             <span class="stat-label">{{ stat.label }}</span>
             <span class="stat-icon" [ngClass]="stat.tone">{{ stat.icon }}</span>
@@ -107,7 +107,7 @@
           </label>
 
           <div class="colony-list">
-            <article class="colony-card" *ngFor="let colony of filteredColonies | slice:0:3">
+            <article class="colony-card" *ngFor="let colony of filteredColonies; trackBy: trackByItem">
               <img [src]="colony.image" [alt]="'Gato de ' + colony.name" />
               <div class="colony-info">
                 <div class="colony-title-row">
@@ -135,7 +135,7 @@
             </div>
           </div>
           <div class="activity-list">
-            <article class="activity-item" *ngFor="let cat of filteredCats | slice:-3">
+            <article class="activity-item" *ngFor="let cat of filteredCats | slice:-3; trackBy: trackByItem">
               <span class="activity-symbol pink-bg">{{ (cat.name ?? '?').charAt(0) }}</span>
               <div><p><strong>{{ cat.name ?? 'Sin nombre' }}</strong> · {{ cat.status }}</p><small>{{ cat.colony }}</small></div>
             </article>
@@ -205,7 +205,7 @@
         </form>
 
         <div class="tile-grid">
-          <article class="tile" *ngFor="let colony of filteredColonies">
+          <article class="tile" *ngFor="let colony of filteredColonies; trackBy: trackByItem">
             <img [src]="colony.image" [alt]="'Gato de ' + colony.name" />
             <div class="tile-body">
               <div class="colony-title-row">
@@ -239,94 +239,191 @@
           <p class="result-count" aria-live="polite">{{ filteredCats.length }} gatos</p>
         </div>
 
-        <form class="panel form-panel form-enter" *ngIf="catFormOpen" (ngSubmit)="saveCat()">
-          <div class="form-heading">
-            <span class="form-icon pink-bg" aria-hidden="true">♢</span>
-            <div class="form-heading-text">
-              <p class="eyebrow">GATOS</p>
-              <h2>{{ catForm.id === null ? 'Nuevo gato' : 'Editar gato' }}</h2>
-              <p class="form-hint">Los campos sin estrella pueden quedar vacíos si aún no tienes el dato.</p>
-            </div>
-            <button class="icon-button form-close" type="button" aria-label="Cerrar formulario" (click)="closeForms()">✕</button>
-          </div>
-          <p class="form-alert" role="alert" *ngIf="formError">{{ formError }}</p>
-          <div class="form-grid">
-            <label class="field">
-              <span class="field-label">Nombre</span>
-              <span class="field-box">
-                <span class="field-icon" aria-hidden="true">♢</span>
-                <input name="name" [(ngModel)]="catForm.name" maxlength="100" placeholder="Vacío si aún no tiene" />
-              </span>
-            </label>
-            <label class="field">
-              <span class="field-label">Sexo</span>
-              <span class="field-box">
-                <span class="field-icon" aria-hidden="true">⚥</span>
-                <select name="sex" [(ngModel)]="catForm.sex">
-                  <option *ngFor="let s of sexOptions" [value]="s.value">{{ s.label }}</option>
-                </select>
-              </span>
-            </label>
-            <label class="field">
-              <span class="field-label">Fecha de nacimiento</span>
-              <span class="field-box">
-                <span class="field-icon" aria-hidden="true">▦</span>
-                <input type="date" name="birthDate" [(ngModel)]="catForm.birthDate" />
-              </span>
-            </label>
-            <label class="field">
-              <span class="field-label">Color</span>
-              <span class="field-box">
-                <span class="field-icon" aria-hidden="true">✦</span>
-                <input name="color" [(ngModel)]="catForm.color" maxlength="100" placeholder="Atigrado, negro, blanco..." />
-              </span>
-            </label>
-            <label class="field">
-              <span class="field-label">Estado <i class="field-required" aria-hidden="true">*</i></span>
-              <span class="field-box">
-                <span class="field-icon" aria-hidden="true">◈</span>
-                <select name="status" [(ngModel)]="catForm.status">
-                  <option *ngFor="let s of statusOptions" [value]="s">{{ statusLabels[s] }}</option>
-                </select>
-              </span>
-            </label>
-            <label class="field">
-              <span class="field-label">Colonia</span>
-              <span class="field-box">
-                <span class="field-icon" aria-hidden="true">⌂</span>
-                <select name="colonyId" [(ngModel)]="catForm.colonyId">
-                  <option [ngValue]="null">Sin asignar</option>
-                  <option *ngFor="let c of colonyOptions" [ngValue]="c.id">{{ c.name }}</option>
-                </select>
-              </span>
-            </label>
-            <label class="field field-wide">
-              <span class="field-label">Observaciones</span>
-              <span class="field-box">
-                <span class="field-icon" aria-hidden="true">✎</span>
-                <textarea name="observations" [(ngModel)]="catForm.observations" maxlength="1000" rows="3" placeholder="Carácter, salud, alergias..."></textarea>
-              </span>
-            </label>
-            <div class="form-checks">
-              <label class="checkbox">
-                <input type="checkbox" name="neutered" [(ngModel)]="catForm.neutered" />
-                <span class="checkbox-box" aria-hidden="true">✓</span>
-                <span class="checkbox-text">Esterilizado</span>
-              </label>
-              <label class="checkbox">
-                <input type="checkbox" name="identified" [(ngModel)]="catForm.identified" />
-                <span class="checkbox-box" aria-hidden="true">✓</span>
-                <span class="checkbox-text">Identificado</span>
-              </label>
-            </div>
-          </div>
-          <div class="form-actions">
-            <button class="btn-secondary" type="button" [disabled]="savingCat" (click)="closeForms()">Cancelar</button>
-            <button class="primary-button" type="submit" [disabled]="savingCat" [attr.aria-busy]="savingCat">
-              <span class="submit-icon" [class.spinning]="savingCat" aria-hidden="true">{{ savingCat ? '◌' : '♡' }}</span> {{ catSubmitLabel }}
-            </button>
-          </div>
-        </form>
+```html
+<form
+  class="panel form-panel form-enter"
+  *ngIf="catFormOpen"
+  (ngSubmit)="saveCat()"
+  novalidate>
+
+  <div class="form-heading">
+    <span class="form-icon pink-bg" aria-hidden="true">♢</span>
+    <div class="form-heading-text">
+      <p class="eyebrow">GATOS</p>
+      <h2>{{ catForm.id === null ? 'Nuevo gato' : 'Editar gato' }}</h2>
+      <p class="form-hint">Los campos sin estrella pueden quedar vacíos si aún no tienes el dato.</p>
+    </div>
+    <button
+      class="icon-button form-close"
+      type="button"
+      aria-label="Cerrar formulario"
+      (click)="closeForms()">✕</button>
+  </div>
+
+  <p class="form-alert" role="alert" *ngIf="formError">{{ formError }}</p>
+
+  <div class="form-grid">
+
+    <label class="field">
+      <span class="field-label">Nombre</span>
+      <span class="field-box">
+        <span class="field-icon" aria-hidden="true">♢</span>
+        <input
+          name="name"
+          [(ngModel)]="catForm.name"
+          maxlength="100"
+          placeholder="Vacío si aún no tiene" />
+      </span>
+    </label>
+
+    <label class="field">
+      <span class="field-label">Sexo</span>
+      <span class="field-box">
+        <span class="field-icon" aria-hidden="true">⚥</span>
+        <select name="sex" [(ngModel)]="catForm.sex">
+          <option *ngFor="let s of sexOptions" [value]="s.value">
+            {{ s.label }}
+          </option>
+        </select>
+      </span>
+    </label>
+
+    <label class="field">
+      <span class="field-label">Fecha de nacimiento</span>
+      <span class="field-box">
+        <span class="field-icon" aria-hidden="true">▦</span>
+        <input
+          type="date"
+          name="birthDate"
+          [(ngModel)]="catForm.birthDate" />
+      </span>
+    </label>
+
+    <label class="field">
+      <span class="field-label">Color</span>
+      <span class="field-box">
+        <span class="field-icon" aria-hidden="true">✦</span>
+        <input
+          name="color"
+          [(ngModel)]="catForm.color"
+          maxlength="100"
+          placeholder="Atigrado, negro, blanco..." />
+      </span>
+    </label>
+
+    <label class="field">
+      <span class="field-label">
+        Estado <i class="field-required" aria-hidden="true">*</i>
+      </span>
+      <span class="field-box">
+        <span class="field-icon" aria-hidden="true">◈</span>
+        <select
+          name="status"
+          [(ngModel)]="catForm.status"
+          (ngModelChange)="onCatStatusChange()">
+          <option *ngFor="let s of statusOptions" [value]="s">
+            {{ statusLabels[s] }}
+          </option>
+        </select>
+      </span>
+    </label>
+
+    <label class="field">
+      <span class="field-label">
+        Colonia
+        <i
+          *ngIf="requiresCatColony"
+          class="field-required"
+          aria-hidden="true">*</i>
+      </span>
+
+      <span class="field-box">
+        <span class="field-icon" aria-hidden="true">⌂</span>
+        <select
+          name="colonyId"
+          [(ngModel)]="catForm.colonyId"
+          (ngModelChange)="onCatColonyChange()"
+          [attr.aria-invalid]="catColonyValidationError">
+
+          <option [ngValue]="null">Sin asignar</option>
+
+          <option
+            *ngFor="let c of colonyOptions; trackBy: trackByItem"
+            [ngValue]="c.id">
+            {{ c.name }}
+          </option>
+        </select>
+      </span>
+
+      <p
+        class="form-alert"
+        role="alert"
+        *ngIf="catColonyValidationError">
+        Selecciona una colonia para los gatos cuyo estado es «En colonia».
+      </p>
+    </label>
+
+    <label class="field field-wide">
+      <span class="field-label">Observaciones</span>
+      <span class="field-box">
+        <span class="field-icon" aria-hidden="true">✎</span>
+        <textarea
+          name="observations"
+          [(ngModel)]="catForm.observations"
+          maxlength="1000"
+          rows="3"
+          placeholder="Carácter, salud, alergias..."></textarea>
+      </span>
+    </label>
+
+    <div class="form-checks">
+      <label class="checkbox">
+        <input
+          type="checkbox"
+          name="neutered"
+          [(ngModel)]="catForm.neutered" />
+        <span class="checkbox-box" aria-hidden="true">✓</span>
+        <span class="checkbox-text">Esterilizado</span>
+      </label>
+
+      <label class="checkbox">
+        <input
+          type="checkbox"
+          name="identified"
+          [(ngModel)]="catForm.identified" />
+        <span class="checkbox-box" aria-hidden="true">✓</span>
+        <span class="checkbox-text">Identificado</span>
+      </label>
+    </div>
+
+  </div>
+
+  <div class="form-actions">
+    <button
+      class="btn-secondary"
+      type="button"
+      [disabled]="savingCat"
+      (click)="closeForms()">
+      Cancelar
+    </button>
+
+    <button
+      class="primary-button"
+      type="submit"
+      [disabled]="savingCat"
+      [attr.aria-busy]="savingCat">
+      <span
+        class="submit-icon"
+        [class.spinning]="savingCat"
+        aria-hidden="true">
+        {{ savingCat ? '◌' : '♡' }}
+      </span>
+      {{ catSubmitLabel }}
+    </button>
+  </div>
+
+</form>
+```
 
         <div class="panel table-panel">
           <div class="table-scroll">
@@ -343,7 +440,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let cat of filteredCats">
+                <tr *ngFor="let cat of filteredCats; trackBy: trackByItem">
                   <th scope="row">
                     <div class="cell-cat">
                       <span class="activity-symbol pink-bg" aria-hidden="true">{{ (cat.name ?? '?').charAt(0) }}</span>
@@ -442,7 +539,7 @@
                 <span class="field-icon" aria-hidden="true">♢</span>
                 <select name="catId" [(ngModel)]="incidentForm.catId">
                   <option [ngValue]="null">Sin gato relacionado</option>
-                  <option *ngFor="let cat of filteredCats" [ngValue]="cat.id">{{ cat.name || ('Gato #' + cat.id) }}</option>
+                  <option *ngFor="let cat of filteredCats; trackBy: trackByItem" [ngValue]="cat.id">{{ cat.name || ('Gato #' + cat.id) }}</option>
                 </select>
               </span>
             </label>
@@ -453,7 +550,7 @@
                 <span class="field-icon" aria-hidden="true">⌂</span>
                 <select name="colonyId" [(ngModel)]="incidentForm.colonyId">
                   <option [ngValue]="null">Sin colonia relacionada</option>
-                  <option *ngFor="let colony of colonyOptions" [ngValue]="colony.id">{{ colony.name }}</option>
+                  <option *ngFor="let colony of colonyOptions; trackBy: trackByItem" [ngValue]="colony.id">{{ colony.name }}</option>
                 </select>
               </span>
             </label>
@@ -483,7 +580,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let incident of filteredIncidents">
+                <tr *ngFor="let incident of filteredIncidents; trackBy: trackByItem">
                   <th scope="row">
                     <div class="cell-cat">
                       <span class="activity-symbol pink-bg" aria-hidden="true">⚑</span>
@@ -575,7 +672,7 @@
         </form>
         <p class="empty-state" *ngIf="usersMessage">{{ usersMessage }}</p>
         <div class="people-grid">
-          <article class="person-card" *ngFor="let person of users">
+          <article class="person-card" *ngFor="let person of users; trackBy: trackByItem">
             <span class="avatar" aria-hidden="true">{{ person.nombre.charAt(0) }}</span>
             <h3>{{ person.nombre }}</h3>
             <span class="role-pill" [ngClass]="roleClass(person.rol)">{{ roleLabel(person.rol) }}</span>
