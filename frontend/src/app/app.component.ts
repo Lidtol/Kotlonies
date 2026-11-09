@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -103,6 +103,7 @@ export class AppComponent {
   private readonly catService = inject(CatService);
   private readonly userService = inject(UserService);
   private readonly incidentService = inject(IncidentService);
+  private readonly changeDetector = inject(ChangeDetectorRef);
   readonly usuario = this.auth.usuario;
   readonly cargandoSesion = this.auth.cargando;
 
@@ -464,6 +465,10 @@ saveColony(): void {
     error: (e: HttpErrorResponse) => {
       this.savingColony = false;
       this.formError = this.errorText(e);
+      // El error llega fuera del ciclo de detección de cambios (XHR responde en un
+      // macro-task y el bloque del alerta es una vista embebida desmontada). Sin esto,
+      // el mensaje no se pinta hasta que el usuario clica en otra parte.
+      this.changeDetector.markForCheck();
     }
   });
 }

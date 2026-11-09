@@ -66,7 +66,7 @@
         <button class="primary-button" type="button" (click)="newUser()" *ngIf="activeView === 'Voluntariado'"><span>＋</span> Añadir Voluntariado</button>
       </section>
 
-      <p class="form-alert" role="alert" *ngIf="formError && !colonyFormOpen && !catFormOpen && !userFormOpen && !incidentFormOpen">{{ formError }}</p>
+      <p class="form-alert" role="alert" *ngIf="formError && !catFormOpen && !userFormOpen && !incidentFormOpen">{{ formError }}</p>
 
       <section class="hero-card" *ngIf="activeView === 'Inicio'">
         <div class="hero-copy">
