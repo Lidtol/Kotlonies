@@ -413,30 +413,43 @@ export class AppComponent {
     this.colonyFormOpen = true;
   }
 
-  saveColony(): void {
-    // Si ya hay una petición en marcha, se ignora el clic para no crear duplicados.
-    if (this.savingColony) return;
-    const f = this.colonyForm;
-    const payload = {
-      name: f.name.trim(),
-      description: f.description.trim() || null,
-      location: f.location.trim(),
-      active: f.active
-    };
-    const request = f.id === null
-      ? this.colonyService.createColony(payload)
-      : this.colonyService.updateColony(f.id, payload);
+saveColony(): void {
+  if (this.savingColony) return;
 
-    this.savingColony = true;
-    this.formError = null;
-    request.subscribe({
-      next: () => { this.savingColony = false; this.closeForms(); this.loadColonies(); },
-      error: (e: HttpErrorResponse) => {
-        this.savingColony = false;
-        this.formError = this.errorText(e);
-      }
-    });
+  const f = this.colonyForm;
+
+  // Validar los campos obligatorios
+  if (!f.name.trim() || !f.location.trim()) {
+    this.formError = 'El nombre y la ubicación son obligatorios.';
+    return;
   }
+
+  const payload = {
+    name: f.name.trim(),
+    description: f.description.trim() || null,
+    location: f.location.trim(),
+    active: f.active
+  };
+
+  const request = f.id === null
+    ? this.colonyService.createColony(payload)
+    : this.colonyService.updateColony(f.id, payload);
+
+  this.savingColony = true;
+  this.formError = null;
+
+  request.subscribe({
+    next: () => {
+      this.savingColony = false;
+      this.closeForms();
+      this.loadColonies();
+    },
+    error: (e: HttpErrorResponse) => {
+      this.savingColony = false;
+      this.formError = this.errorText(e);
+    }
+  });
+}
 
   archiveColony(colony: ColonyView): void {
     this.colonyService.archiveColony(colony.id).subscribe({
