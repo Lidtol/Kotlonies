@@ -63,8 +63,19 @@ public class CatService {
         cat.setName(request.getName());
         cat.setSex(request.getSex() == null ? null : request.getSex().toUpperCase());
         cat.setBirthDate(parseDate(request.getBirthDate()));
-        cat.setColor(request.getColor());
-        cat.setStatus(request.getStatus().trim());
+cat.setColor(request.getColor());
+
+String status = request.getStatus().trim();
+
+// Si el gato está en colonia, necesita una colonia asignada.
+if ("EN_COLONIA".equals(status) && request.getColonyId() == null) {
+    throw new ResponseStatusException(
+        HttpStatus.BAD_REQUEST,
+        "A colony is required when the cat status is EN_COLONIA"
+    );
+}
+
+cat.setStatus(status);
         cat.setNeutered(request.getNeutered());
         cat.setIdentified(request.getIdentified());
         cat.setObservations(request.getObservations());
