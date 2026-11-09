@@ -7,7 +7,7 @@
   },
   "include": [
     "src/**/*.ts"
-  ],
+, "src/app/core/count-up.directive"  ],
   "exclude": [
     "src/**/*.spec.ts"
   ]
