@@ -28,9 +28,9 @@ public class Cat {
     private Boolean neutered;
     private Boolean identified;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "colony_id")
-    private Colony colony;
+@ManyToOne(fetch = FetchType.LAZY, optional = true)
+@JoinColumn(name = "colony_id", nullable = true)
+private Colony colony;
 
     @Column(length = 1000)
     private String observations;
