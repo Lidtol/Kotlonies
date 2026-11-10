@@ -45,16 +45,21 @@ public class AuthController {
                 null,
                 AuthorityUtils.createAuthorityList("ROLE_" + usuario.getRol())
         );
+// Creamos o recuperamos la sesión.
+HttpSession session = httpRequest.getSession(true);
 
-        SecurityContext contexto = SecurityContextHolder.createEmptyContext();
-        contexto.setAuthentication(autenticacion);
-        SecurityContextHolder.setContext(contexto);
+// Renovamos el identificador para evitar Session Fixation.
+httpRequest.changeSessionId();
 
-        HttpSession session = httpRequest.getSession(true);
-        session.setAttribute(
-                HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-                contexto
-        );
+// Guardamos la autenticación.
+SecurityContext contexto = SecurityContextHolder.createEmptyContext();
+contexto.setAuthentication(autenticacion);
+SecurityContextHolder.setContext(contexto);
+
+session.setAttribute(
+        HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+        contexto
+);
 
         return ResponseEntity.ok(LoginResponse.from(usuario));
     }

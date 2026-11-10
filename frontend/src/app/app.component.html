@@ -66,7 +66,7 @@
         <button class="primary-button" type="button" (click)="newUser()" *ngIf="activeView === 'Voluntariado'"><span>＋</span> Añadir Voluntariado</button>
       </section>
 
-      <p class="form-alert" role="alert" *ngIf="formError && !colonyFormOpen && !catFormOpen && !userFormOpen && !incidentFormOpen">{{ formError }}</p>
+      <p class="form-alert" role="alert" *ngIf="formError && !catFormOpen && !userFormOpen && !incidentFormOpen">{{ formError }}</p>
 
       <section class="hero-card" *ngIf="activeView === 'Inicio'">
         <div class="hero-copy">
@@ -670,14 +670,33 @@
           </div>
         </form>
         <p class="empty-state" *ngIf="usersMessage">{{ usersMessage }}</p>
-        <div class="people-grid">
-          <article class="person-card" *ngFor="let person of users; trackBy: trackByItem">
-            <span class="avatar" aria-hidden="true">{{ person.nombre.charAt(0) }}</span>
-            <h3>{{ person.nombre }}</h3>
-            <span class="role-pill" [ngClass]="roleClass(person.rol)">{{ roleLabel(person.rol) }}</span>
-            <p>{{ person.email }}</p>
-          </article>
-        </div>
+
+<div class="people-grid">
+  <article class="person-card" *ngFor="let person of users(); trackBy: trackByItem">
+    <span class="avatar" aria-hidden="true">
+      {{ person.nombre.charAt(0) }}
+    </span>
+
+    <h3>{{ person.nombre }}</h3>
+
+    <span class="role-pill" [ngClass]="roleClass(person.rol)">
+      {{ roleLabel(person.rol) }}
+    </span>
+
+    <p>{{ person.email }}</p>
+
+    <button
+      type="button"
+      class="btn-secondary"
+      [disabled]="deletingUserId !== null"
+      (click)="deleteUser(person)"
+      [attr.aria-busy]="deletingUserId === person.id"
+    >
+      {{ deletingUserId === person.id ? 'Eliminando...' : 'Eliminar usuario' }}
+    </button>
+  </article>
+</div>
+
       </section>
 
       <!-- CALENDARIO -->
