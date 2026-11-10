@@ -1,3 +1,4 @@
+
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -23,10 +24,24 @@ export class UserService {
   private readonly http = inject(HttpClient);
 
   getUsers(): Observable<BackendUser[]> {
-    return this.http.get<BackendUser[]>('http://localhost:8080/api/usuarios', { withCredentials: true });
+    return this.http.get<BackendUser[]>(
+      'http://localhost:8080/api/usuarios',
+      { withCredentials: true }
+    );
   }
 
   createUser(payload: UserPayload): Observable<BackendUser> {
-    return this.http.post<BackendUser>('http://localhost:8080/api/usuarios', payload, { withCredentials: true });
+    return this.http.post<BackendUser>(
+      'http://localhost:8080/api/usuarios',
+      payload,
+      { withCredentials: true }
+    );
+  }
+
+  deleteUser(id: number): Observable<void> {
+    return this.http.delete<void>(
+      `http://localhost:8080/api/usuarios/${id}`,
+      { withCredentials: true }
+    );
   }
 }
