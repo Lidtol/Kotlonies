@@ -1,16 +1,20 @@
+
 package com.kotlonies_api.controller;
 
 import com.kotlonies_api.dto.UsuarioRequest;
 import com.kotlonies_api.dto.UsuarioUpdateRequest;
 import com.kotlonies_api.model.Usuario;
 import com.kotlonies_api.service.UsuarioService;
+
 import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -23,9 +27,6 @@ public class UsuarioController {
         this.service = service;
     }
 
-    /**
-     * Usuario sin hash de contraseña para no exponer el secreto en las respuestas.
-     */
     record UsuarioPublico(
             Long id,
             String nombre,
@@ -47,7 +48,10 @@ public class UsuarioController {
     @GetMapping
     public ResponseEntity<List<UsuarioPublico>> listar() {
         return ResponseEntity.ok(
-                service.listar().stream().map(UsuarioPublico::from).toList()
+                service.listar()
+                        .stream()
+                        .map(UsuarioPublico::from)
+                        .toList()
         );
     }
 
@@ -55,7 +59,9 @@ public class UsuarioController {
     public ResponseEntity<UsuarioPublico> obtenerPorId(
             @PathVariable Long id
     ) {
-        return ResponseEntity.ok(UsuarioPublico.from(service.obtenerPorId(id)));
+        return ResponseEntity.ok(
+                UsuarioPublico.from(service.obtenerPorId(id))
+        );
     }
 
     @PostMapping
@@ -72,18 +78,25 @@ public class UsuarioController {
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioPublico> actualizar(
             @PathVariable Long id,
-            @Valid @RequestBody UsuarioUpdateRequest request
+            @Valid @RequestBody UsuarioUpdateRequest request,
+            Authentication authentication
     ) {
-        Usuario actualizado = service.actualizar(id, request);
+        Usuario actualizado = service.actualizar(
+                id,
+                request,
+                authentication.getName()
+        );
 
         return ResponseEntity.ok(UsuarioPublico.from(actualizado));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(
-            @PathVariable Long id
+            @PathVariable Long id,
+            Authentication authentication
     ) {
-        service.eliminar(id);
+        service.eliminar(id, authentication.getName());
+
         return ResponseEntity.noContent().build();
     }
 }

@@ -14,7 +14,7 @@ import { BackendColony, ColonyService } from './core/colony.service';
 
 import { BackendCat, CatPayload, CatService } from './core/cat.service';
 
-import { BackendUser, UserPayload, UserService } from './core/user.service';
+import { BackendUser, UserPayload, UserUpdatePayload, UserService } from './core/user.service';
 
 import {
   BackendIncident,
@@ -105,6 +105,8 @@ interface CatForm {
 }
 
 interface UserForm {
+  id: number | null;
+
   nombre: string;
 
   email: string;
@@ -421,7 +423,13 @@ export class AppComponent {
     COMPLETADA: 'Completada',
   };
 
-  readonly tareaTipoOptions: TaskType[] = ['ALIMENTACION', 'VISITA', 'VETERINARIO', 'REVISION', 'OTRO'];
+  readonly tareaTipoOptions: TaskType[] = [
+    'ALIMENTACION',
+    'VISITA',
+    'VETERINARIO',
+    'REVISION',
+    'OTRO',
+  ];
 
   readonly roles = [
     { name: 'Administración', description: 'Gestiona usuarios, colonias y gatos.' },
@@ -665,9 +673,17 @@ export class AppComponent {
     return this.savingCat ? `${action} gato...` : `Guardar gato`;
   }
 
-  get userSubmitLabel(): string {
-    return this.savingUser ? 'Creando acceso...' : 'Guardar acceso';
+get userSubmitLabel(): string {
+  if (this.savingUser) {
+    return this.userForm.id === null
+      ? 'Creando acceso...'
+      : 'Guardando cambios...';
   }
+
+  return this.userForm.id === null
+    ? 'Crear acceso'
+    : 'Guardar cambios';
+}
 
   roleLabel(rol: string | undefined): string {
     return rol ? (this.roleLabels[rol] ?? rol) : '';
@@ -937,47 +953,77 @@ export class AppComponent {
     this.userFormOpen = true;
   }
 
-  saveUser(): void {
-    if (this.savingUser) return;
+  editUser(person: BackendUser): void {
+  if (!this.esAdministrador()) return;
 
-    if (this.usuario()?.rol !== 'ADMIN') {
-      this.formError = 'Solo la administración puede crear cuentas.';
+  this.closeForms();
 
-      return;
-    }
+  this.userForm = {
+    id: person.id,
+    nombre: person.nombre,
+    email: person.email,
+    password: '',
+    rol: person.rol,
+    activo: person.activo
+  };
 
-    const f = this.userForm;
+  this.userFormOpen = true;
+}
 
-    const payload: UserPayload = {
-      nombre: f.nombre.trim(),
+saveUser(): void {
+  if (this.savingUser) return;
 
-      email: f.email.trim(),
-
-      password: f.password,
-
-      rol: f.rol,
-
-      activo: f.activo,
-    };
-
-    this.savingUser = true;
-
-    this.formError = null;
-
-    this.userService.createUser(payload).subscribe({
-      next: () => {
-        this.savingUser = false;
-        this.closeForms();
-        this.loadUsers(this.usuario()!.rol);
-      },
-
-      error: (e: HttpErrorResponse) => {
-        this.savingUser = false;
-
-        this.formError = this.errorText(e);
-      },
-    });
+  if (!this.esAdministrador()) {
+    this.formError = 'Solo la administración puede gestionar cuentas.';
+    return;
   }
+
+  const f = this.userForm;
+
+  if (!f.nombre.trim() || !f.email.trim()) {
+    this.formError = 'El nombre y el correo son obligatorios.';
+    return;
+  }
+
+  if (f.id === null && !f.password.trim()) {
+    this.formError = 'La contraseña es obligatoria al crear una cuenta.';
+    return;
+  }
+
+  const payload = {
+    nombre: f.nombre.trim(),
+    email: f.email.trim(),
+    rol: f.rol,
+    activo: f.activo
+  };
+
+  this.savingUser = true;
+  this.formError = null;
+
+  const request = f.id === null
+    ? this.userService.createUser({
+        ...payload,
+        password: f.password
+      })
+    : this.userService.updateUser(f.id, {
+        ...payload,
+        password: f.password.trim() || null
+      });
+
+  request.subscribe({
+    next: () => {
+      this.savingUser = false;
+      this.closeForms();
+      this.loadUsers(this.usuario()!.rol);
+    },
+
+    error: (e: HttpErrorResponse) => {
+      this.savingUser = false;
+      this.formError = this.errorText(e);
+    }
+  });
+}
+
 
   deleteUser(person: BackendUser): void {
     if (!this.esAdministrador()) {
@@ -1257,7 +1303,11 @@ export class AppComponent {
 
     const dayKey = dateValue ?? this.taskSelectedDate;
     const now = new Date();
-    const selectedDate = dayKey ? new Date(`${dayKey}T${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`) : new Date();
+    const selectedDate = dayKey
+      ? new Date(
+          `${dayKey}T${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
+        )
+      : new Date();
 
     this.taskForm = {
       id: null,
@@ -1422,7 +1472,8 @@ export class AppComponent {
       },
       error: () => {
         this.rawTasks.set([]);
-        this.tasksLoadError = 'No se pudieron cargar las tareas. Comprueba la conexión con el servidor.';
+        this.tasksLoadError =
+          'No se pudieron cargar las tareas. Comprueba la conexión con el servidor.';
       },
     });
   }
@@ -1505,10 +1556,16 @@ export class AppComponent {
     };
   }
 
-  private emptyUserForm(): UserForm {
-    return { nombre: '', email: '', password: '', rol: 'CUIDADOR', activo: true };
-  }
-
+private emptyUserForm(): UserForm {
+  return {
+    id: null,
+    nombre: '',
+    email: '',
+    password: '',
+    rol: 'CUIDADOR',
+    activo: true
+  };
+}
   private emptyIncidentForm(): IncidentForm {
     return {
       id: null,

@@ -19,35 +19,45 @@
         class="nav-item"
         [class.active]="activeView === item.label"
         [attr.aria-current]="activeView === item.label ? 'page' : null"
-        (click)="selectSection(item.label)">
+        (click)="selectSection(item.label)"
+      >
         <span class="nav-icon" aria-hidden="true">{{ item.icon }}</span>
         <span>{{ item.label }}</span>
         <span *ngIf="item.label === 'Colonias'" class="nav-count">{{ colonyCount }}</span>
         <span *ngIf="item.label === 'Gatos'" class="nav-count">{{ catCount }}</span>
-        <span *ngIf="item.label === 'Incidencias'" class="nav-count">{{ filteredIncidents.length }}</span>
+        <span *ngIf="item.label === 'Incidencias'" class="nav-count">{{
+          filteredIncidents.length
+        }}</span>
       </button>
-      
     </nav>
 
     <div class="sidebar-help">
       <div class="help-icon">♡</div>
-      <strong>Pequeños cuidados,<br>grandes cambios.</strong>
+      <strong>Pequeños cuidados,<br />grandes cambios.</strong>
       <p>Cada gesto ayuda a mejorar la vida de los gatos comunitarios.</p>
     </div>
 
     <button class="profile-mini" type="button" (click)="selectSection('Perfil')">
       <span class="avatar">{{ usuario()?.nombre?.charAt(0) }}</span>
-      <span class="profile-text"><strong>{{ usuario()?.nombre }}</strong><small>{{ roleLabel(usuario()?.rol) }}</small></span>
+      <span class="profile-text"
+        ><strong>{{ usuario()?.nombre }}</strong
+        ><small>{{ roleLabel(usuario()?.rol) }}</small></span
+      >
       <span class="profile-chevron">⌄</span>
     </button>
   </aside>
 
   <main class="main-content">
     <header class="topbar">
-      <div class="breadcrumb"><span>Espacio de trabajo</span><span class="crumb-separator">/</span><strong>{{ activeView }}</strong></div>
+      <div class="breadcrumb">
+        <span>Espacio de trabajo</span><span class="crumb-separator">/</span
+        ><strong>{{ activeView }}</strong>
+      </div>
       <div class="topbar-actions">
         <span class="today-label">{{ todayLabel }}</span>
-        <button class="icon-button notification" type="button" aria-label="Notificaciones">♧<i></i></button>
+        <button class="icon-button notification" type="button" aria-label="Notificaciones">
+          ♧<i></i>
+        </button>
         <span class="avatar top-avatar">{{ usuario()?.nombre?.charAt(0) }}</span>
       </div>
     </header>
@@ -56,24 +66,65 @@
       <section class="welcome-row">
         <div>
           <p class="eyebrow">TU ESPACIO DE CUIDADO FELINO</p>
-          <h1 *ngIf="activeView === 'Inicio'">¡Hola, {{ usuario()?.nombre }}! <span class="wave">✦</span></h1>
+          <h1 *ngIf="activeView === 'Inicio'">
+            ¡Hola, {{ usuario()?.nombre }}! <span class="wave">✦</span>
+          </h1>
           <h1 *ngIf="activeView !== 'Inicio'">{{ activeView }}</h1>
           <p class="page-subtitle">{{ subtitles[activeView] }}</p>
         </div>
-        <button class="primary-button" type="button" (click)="newCat()" *ngIf="activeView === 'Inicio' || activeView === 'Gatos'"><span>＋</span> Añadir Gato</button>
-        <button class="primary-button" type="button" (click)="newColony()" *ngIf="activeView === 'Colonias'"><span>＋</span> Añadir Colonia</button>
-        <button class="primary-button" type="button" (click)="newIncident()" *ngIf="activeView === 'Incidencias' && puedeGestionarIncidencias"><span>＋</span> Nueva incidencia</button>
-        <button class="primary-button" type="button" (click)="newUser()" *ngIf="activeView === 'Voluntariado'"><span>＋</span> Añadir Voluntariado</button>
+        <button
+          class="primary-button"
+          type="button"
+          (click)="newCat()"
+          *ngIf="activeView === 'Inicio' || activeView === 'Gatos'"
+        >
+          <span>＋</span> Añadir Gato
+        </button>
+        <button
+          class="primary-button"
+          type="button"
+          (click)="newColony()"
+          *ngIf="activeView === 'Colonias'"
+        >
+          <span>＋</span> Añadir Colonia
+        </button>
+        <button
+          class="primary-button"
+          type="button"
+          (click)="newIncident()"
+          *ngIf="activeView === 'Incidencias' && puedeGestionarIncidencias"
+        >
+          <span>＋</span> Nueva incidencia
+        </button>
+        <button
+          class="primary-button"
+          type="button"
+          (click)="newUser()"
+          *ngIf="activeView === 'Voluntariado'"
+        >
+          <span>＋</span> Añadir Voluntariado
+        </button>
       </section>
 
-      <p class="form-alert" role="alert" *ngIf="formError && !catFormOpen && !userFormOpen && !incidentFormOpen">{{ formError }}</p>
+      <p
+        class="form-alert"
+        role="alert"
+        *ngIf="formError && !catFormOpen && !userFormOpen && !incidentFormOpen"
+      >
+        {{ formError }}
+      </p>
 
       <section class="hero-card" *ngIf="activeView === 'Inicio'">
         <div class="hero-copy">
           <span class="hero-tag"><span class="status-dot"></span> JUNTOS POR ELLOS</span>
-          <h2>Un lugar mejor<br>para cada <em>patita.</em></h2>
-          <p>Organiza colonias, registra sus gatos y coordina a las personas que hacen posible su cuidado.</p>
-          <button class="hero-button" type="button" (click)="selectSection('Colonias')">Explorar mis colonias <span>→</span></button>
+          <h2>Un lugar mejor<br />para cada <em>patita.</em></h2>
+          <p>
+            Organiza colonias, registra sus gatos y coordina a las personas que hacen posible su
+            cuidado.
+          </p>
+          <button class="hero-button" type="button" (click)="selectSection('Colonias')">
+            Explorar mis colonias <span>→</span>
+          </button>
         </div>
         <div class="hero-art" role="img" aria-label="Gato atigrado descansando"></div>
         <div class="hero-decoration decoration-one"></div>
@@ -87,7 +138,9 @@
             <span class="stat-icon" [ngClass]="stat.tone">{{ stat.icon }}</span>
           </div>
           <div class="stat-value">{{ stat.value }}</div>
-          <div class="stat-foot"><span class="trend">↗</span> <span>Datos de la base de datos</span></div>
+          <div class="stat-foot">
+            <span class="trend">↗</span> <span>Datos de la base de datos</span>
+          </div>
         </article>
       </section>
 
@@ -98,7 +151,9 @@
               <h2>Colonias destacadas</h2>
               <p>Un vistazo rápido a tus espacios de cuidado.</p>
             </div>
-            <button class="text-button" type="button" (click)="selectSection('Colonias')">Ver todas <span>→</span></button>
+            <button class="text-button" type="button" (click)="selectSection('Colonias')">
+              Ver todas <span>→</span>
+            </button>
           </div>
 
           <label class="search-box">
@@ -107,19 +162,33 @@
           </label>
 
           <div class="colony-list">
-            <article class="colony-card" *ngFor="let colony of filteredColonies; trackBy: trackByItem">
+            <article
+              class="colony-card"
+              *ngFor="let colony of filteredColonies; trackBy: trackByItem"
+            >
               <img [src]="colony.image" [alt]="'Gato de ' + colony.name" />
               <div class="colony-info">
                 <div class="colony-title-row">
                   <h3>{{ colony.name }}</h3>
-                  <span class="status-pill" [class.pending]="!colony.active">{{ colony.active ? 'Activa' : 'Archivada' }}</span>
+                  <span class="status-pill" [class.pending]="!colony.active">{{
+                    colony.active ? 'Activa' : 'Archivada'
+                  }}</span>
                 </div>
                 <p class="location"><span>⌖</span> {{ colony.location }}</p>
                 <div class="colony-meta">
-                  <span><b>{{ colony.cats }}</b> gatos</span>
+                  <span
+                    ><b>{{ colony.cats }}</b> gatos</span
+                  >
                 </div>
               </div>
-              <button class="arrow-button" type="button" [attr.aria-label]="'Ver ' + colony.name" (click)="selectSection('Colonias')">→</button>
+              <button
+                class="arrow-button"
+                type="button"
+                [attr.aria-label]="'Ver ' + colony.name"
+                (click)="selectSection('Colonias')"
+              >
+                →
+              </button>
             </article>
             <div class="empty-state" *ngIf="filteredColonies.length === 0">
               No hay colonias que mostrar.
@@ -135,13 +204,25 @@
             </div>
           </div>
           <div class="activity-list">
-            <article class="activity-item" *ngFor="let cat of filteredCats | slice:-3; trackBy: trackByItem">
+            <article
+              class="activity-item"
+              *ngFor="let cat of filteredCats | slice: -3; trackBy: trackByItem"
+            >
               <span class="activity-symbol pink-bg">{{ (cat.name ?? '?').charAt(0) }}</span>
-              <div><p><strong>{{ cat.name ?? 'Sin nombre' }}</strong> · {{ cat.status }}</p><small>{{ cat.colony }}</small></div>
+              <div>
+                <p>
+                  <strong>{{ cat.name ?? 'Sin nombre' }}</strong> · {{ cat.status }}
+                </p>
+                <small>{{ cat.colony }}</small>
+              </div>
             </article>
-            <div class="empty-state" *ngIf="filteredCats.length === 0">Todavía no hay gatos registrados.</div>
+            <div class="empty-state" *ngIf="filteredCats.length === 0">
+              Todavía no hay gatos registrados.
+            </div>
           </div>
-          <button class="activity-link" type="button" (click)="selectSection('Gatos')">Ver gatos <span>→</span></button>
+          <button class="activity-link" type="button" (click)="selectSection('Gatos')">
+            Ver gatos <span>→</span>
+          </button>
         </aside>
       </section>
 
@@ -150,42 +231,78 @@
         <div class="toolbar">
           <label class="search-box">
             <span aria-hidden="true">⌕</span>
-            <input type="search" placeholder="Buscar por nombre o zona..." aria-label="Buscar colonias" [(ngModel)]="searchTerm" />
+            <input
+              type="search"
+              placeholder="Buscar por nombre o zona..."
+              aria-label="Buscar colonias"
+              [(ngModel)]="searchTerm"
+            />
           </label>
           <p class="result-count" aria-live="polite">{{ filteredColonies.length }} colonias</p>
         </div>
 
-<form class="panel form-panel form-enter" *ngIf="colonyFormOpen" (ngSubmit)="saveColony()">
+        <form class="panel form-panel form-enter" *ngIf="colonyFormOpen" (ngSubmit)="saveColony()">
           <div class="form-heading">
             <span class="form-icon violet-bg" aria-hidden="true">⌂</span>
             <div class="form-heading-text">
               <p class="eyebrow">COLONIAS</p>
               <h2>{{ colonyForm.id === null ? 'Nueva colonia' : 'Editar colonia' }}</h2>
-              <p class="form-hint">Define la colonia y su ubicación para poder registrar sus gatos.</p>
+              <p class="form-hint">
+                Define la colonia y su ubicación para poder registrar sus gatos.
+              </p>
             </div>
-            <button class="icon-button form-close" type="button" aria-label="Cerrar formulario" (click)="closeForms()">✕</button>
+            <button
+              class="icon-button form-close"
+              type="button"
+              aria-label="Cerrar formulario"
+              (click)="closeForms()"
+            >
+              ✕
+            </button>
           </div>
           <p class="form-alert" role="alert" *ngIf="formError">{{ formError }}</p>
           <div class="form-grid">
             <label class="field">
-              <span class="field-label">Nombre <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-label"
+                >Nombre <i class="field-required" aria-hidden="true">*</i></span
+              >
               <span class="field-box">
                 <span class="field-icon" aria-hidden="true">⌂</span>
-                <input name="name" [(ngModel)]="colonyForm.name" required maxlength="100" placeholder="Colonia del puerto" />
+                <input
+                  name="name"
+                  [(ngModel)]="colonyForm.name"
+                  required
+                  maxlength="100"
+                  placeholder="Colonia del puerto"
+                />
               </span>
             </label>
             <label class="field">
-              <span class="field-label">Ubicación <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-label"
+                >Ubicación <i class="field-required" aria-hidden="true">*</i></span
+              >
               <span class="field-box">
                 <span class="field-icon" aria-hidden="true">⌖</span>
-                <input name="location" [(ngModel)]="colonyForm.location" required maxlength="200" placeholder="Zona donde se encuentra" />
+                <input
+                  name="location"
+                  [(ngModel)]="colonyForm.location"
+                  required
+                  maxlength="200"
+                  placeholder="Zona donde se encuentra"
+                />
               </span>
             </label>
             <label class="field field-wide">
               <span class="field-label">Descripción</span>
               <span class="field-box">
                 <span class="field-icon" aria-hidden="true">✎</span>
-                <textarea name="description" [(ngModel)]="colonyForm.description" maxlength="500" rows="3" placeholder="Rasgos, número de gatos, punto de alimentación..."></textarea>
+                <textarea
+                  name="description"
+                  [(ngModel)]="colonyForm.description"
+                  maxlength="500"
+                  rows="3"
+                  placeholder="Rasgos, número de gatos, punto de alimentación..."
+                ></textarea>
               </span>
             </label>
             <div class="form-checks">
@@ -197,9 +314,24 @@
             </div>
           </div>
           <div class="form-actions">
-            <button class="btn-secondary" type="button" [disabled]="savingColony" (click)="closeForms()">Cancelar</button>
-            <button class="primary-button" type="submit" [disabled]="savingColony" [attr.aria-busy]="savingColony">
-              <span class="submit-icon" [class.spinning]="savingColony" aria-hidden="true">{{ savingColony ? '◌' : '♡' }}</span> {{ colonySubmitLabel }}
+            <button
+              class="btn-secondary"
+              type="button"
+              [disabled]="savingColony"
+              (click)="closeForms()"
+            >
+              Cancelar
+            </button>
+            <button
+              class="primary-button"
+              type="submit"
+              [disabled]="savingColony"
+              [attr.aria-busy]="savingColony"
+            >
+              <span class="submit-icon" [class.spinning]="savingColony" aria-hidden="true">{{
+                savingColony ? '◌' : '♡'
+              }}</span>
+              {{ colonySubmitLabel }}
             </button>
           </div>
         </form>
@@ -210,20 +342,35 @@
             <div class="tile-body">
               <div class="colony-title-row">
                 <h3>{{ colony.name }}</h3>
-                <span class="status-pill" [class.pending]="!colony.active">{{ colony.active ? 'Activa' : 'Archivada' }}</span>
+                <span class="status-pill" [class.pending]="!colony.active">{{
+                  colony.active ? 'Activa' : 'Archivada'
+                }}</span>
               </div>
               <p class="location"><span>⌖</span> {{ colony.location }}</p>
               <div class="colony-meta">
-                <span><b>{{ colony.cats }}</b> gatos</span>
+                <span
+                  ><b>{{ colony.cats }}</b> gatos</span
+                >
               </div>
               <div class="tile-actions">
-                <button type="button" class="btn-secondary" (click)="editColony(colony)">Editar</button>
-                <button type="button" class="btn-secondary" *ngIf="colony.active" (click)="archiveColony(colony)">Archivar</button>
+                <button type="button" class="btn-secondary" (click)="editColony(colony)">
+                  Editar
+                </button>
+                <button
+                  type="button"
+                  class="btn-secondary"
+                  *ngIf="colony.active"
+                  (click)="archiveColony(colony)"
+                >
+                  Archivar
+                </button>
               </div>
             </div>
           </article>
         </div>
-        <div class="empty-state" *ngIf="filteredColonies.length === 0">No se han encontrado colonias.</div>
+        <div class="empty-state" *ngIf="filteredColonies.length === 0">
+          No se han encontrado colonias.
+        </div>
       </section>
 
       <!-- GATOS -->
@@ -231,203 +378,206 @@
         <div class="toolbar">
           <label class="search-box">
             <span aria-hidden="true">⌕</span>
-            <input type="search" placeholder="Buscar por nombre, código o colonia..." aria-label="Buscar gatos" [(ngModel)]="searchTerm" />
+            <input
+              type="search"
+              placeholder="Buscar por nombre, código o colonia..."
+              aria-label="Buscar gatos"
+              [(ngModel)]="searchTerm"
+            />
           </label>
           <div class="chips" role="group" aria-label="Filtrar por esterilización">
-            <button *ngFor="let f of catFilters" type="button" class="chip" [class.active]="catFilter === f" [attr.aria-pressed]="catFilter === f" (click)="catFilter = f">{{ f }}</button>
+            <button
+              *ngFor="let f of catFilters"
+              type="button"
+              class="chip"
+              [class.active]="catFilter === f"
+              [attr.aria-pressed]="catFilter === f"
+              (click)="catFilter = f"
+            >
+              {{ f }}
+            </button>
           </div>
           <p class="result-count" aria-live="polite">{{ filteredCats.length }} gatos</p>
         </div>
 
-<form
-  class="panel form-panel form-enter"
-  *ngIf="catFormOpen"
-  (ngSubmit)="saveCat()"
-  novalidate>
+        <form
+          class="panel form-panel form-enter"
+          *ngIf="catFormOpen"
+          (ngSubmit)="saveCat()"
+          novalidate
+        >
+          <div class="form-heading">
+            <span class="form-icon pink-bg" aria-hidden="true">♢</span>
+            <div class="form-heading-text">
+              <p class="eyebrow">GATOS</p>
+              <h2>{{ catForm.id === null ? 'Nuevo gato' : 'Editar gato' }}</h2>
+              <p class="form-hint">
+                Los campos sin estrella pueden quedar vacíos si aún no tienes el dato.
+              </p>
+            </div>
+            <button
+              class="icon-button form-close"
+              type="button"
+              aria-label="Cerrar formulario"
+              (click)="closeForms()"
+            >
+              ✕
+            </button>
+          </div>
 
-  <div class="form-heading">
-    <span class="form-icon pink-bg" aria-hidden="true">♢</span>
-    <div class="form-heading-text">
-      <p class="eyebrow">GATOS</p>
-      <h2>{{ catForm.id === null ? 'Nuevo gato' : 'Editar gato' }}</h2>
-      <p class="form-hint">Los campos sin estrella pueden quedar vacíos si aún no tienes el dato.</p>
-    </div>
-    <button
-      class="icon-button form-close"
-      type="button"
-      aria-label="Cerrar formulario"
-      (click)="closeForms()">✕</button>
-  </div>
+          <p class="form-alert" role="alert" *ngIf="formError">{{ formError }}</p>
 
-  <p class="form-alert" role="alert" *ngIf="formError">{{ formError }}</p>
+          <div class="form-grid">
+            <label class="field">
+              <span class="field-label">Nombre</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">♢</span>
+                <input
+                  name="name"
+                  [(ngModel)]="catForm.name"
+                  maxlength="100"
+                  placeholder="Vacío si aún no tiene"
+                />
+              </span>
+            </label>
 
-  <div class="form-grid">
+            <label class="field">
+              <span class="field-label">Sexo</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">⚥</span>
+                <select name="sex" [(ngModel)]="catForm.sex">
+                  <option *ngFor="let s of sexOptions" [value]="s.value">
+                    {{ s.label }}
+                  </option>
+                </select>
+              </span>
+            </label>
 
-    <label class="field">
-      <span class="field-label">Nombre</span>
-      <span class="field-box">
-        <span class="field-icon" aria-hidden="true">♢</span>
-        <input
-          name="name"
-          [(ngModel)]="catForm.name"
-          maxlength="100"
-          placeholder="Vacío si aún no tiene" />
-      </span>
-    </label>
+            <label class="field">
+              <span class="field-label">Fecha de nacimiento</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">▦</span>
+                <input type="date" name="birthDate" [(ngModel)]="catForm.birthDate" />
+              </span>
+            </label>
 
-    <label class="field">
-      <span class="field-label">Sexo</span>
-      <span class="field-box">
-        <span class="field-icon" aria-hidden="true">⚥</span>
-        <select name="sex" [(ngModel)]="catForm.sex">
-          <option *ngFor="let s of sexOptions" [value]="s.value">
-            {{ s.label }}
-          </option>
-        </select>
-      </span>
-    </label>
+            <label class="field">
+              <span class="field-label">Color</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">✦</span>
+                <input
+                  name="color"
+                  [(ngModel)]="catForm.color"
+                  maxlength="100"
+                  placeholder="Atigrado, negro, blanco..."
+                />
+              </span>
+            </label>
 
-    <label class="field">
-      <span class="field-label">Fecha de nacimiento</span>
-      <span class="field-box">
-        <span class="field-icon" aria-hidden="true">▦</span>
-        <input
-          type="date"
-          name="birthDate"
-          [(ngModel)]="catForm.birthDate" />
-      </span>
-    </label>
+            <label class="field">
+              <span class="field-label">
+                Estado <i class="field-required" aria-hidden="true">*</i>
+              </span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">◈</span>
+                <select
+                  name="status"
+                  [(ngModel)]="catForm.status"
+                  (ngModelChange)="onCatStatusChange()"
+                >
+                  <option *ngFor="let s of statusOptions" [value]="s">
+                    {{ statusLabels[s] }}
+                  </option>
+                </select>
+              </span>
+            </label>
 
-    <label class="field">
-      <span class="field-label">Color</span>
-      <span class="field-box">
-        <span class="field-icon" aria-hidden="true">✦</span>
-        <input
-          name="color"
-          [(ngModel)]="catForm.color"
-          maxlength="100"
-          placeholder="Atigrado, negro, blanco..." />
-      </span>
-    </label>
+            <label class="field">
+              <span class="field-label">
+                Colonia
+                <i *ngIf="requiresCatColony" class="field-required" aria-hidden="true">*</i>
+              </span>
 
-    <label class="field">
-      <span class="field-label">
-        Estado <i class="field-required" aria-hidden="true">*</i>
-      </span>
-      <span class="field-box">
-        <span class="field-icon" aria-hidden="true">◈</span>
-        <select
-          name="status"
-          [(ngModel)]="catForm.status"
-          (ngModelChange)="onCatStatusChange()">
-          <option *ngFor="let s of statusOptions" [value]="s">
-            {{ statusLabels[s] }}
-          </option>
-        </select>
-      </span>
-    </label>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">⌂</span>
+                <select
+                  name="colonyId"
+                  [(ngModel)]="catForm.colonyId"
+                  (ngModelChange)="onCatColonyChange()"
+                  [attr.aria-invalid]="catColonyValidationError"
+                >
+                  <option [ngValue]="null">Sin asignar</option>
 
-    <label class="field">
-      <span class="field-label">
-        Colonia
-        <i
-          *ngIf="requiresCatColony"
-          class="field-required"
-          aria-hidden="true">*</i>
-      </span>
+                  <option *ngFor="let c of colonyOptions; trackBy: trackByItem" [ngValue]="c.id">
+                    {{ c.name }}
+                  </option>
+                </select>
+              </span>
 
-      <span class="field-box">
-        <span class="field-icon" aria-hidden="true">⌂</span>
-        <select
-          name="colonyId"
-          [(ngModel)]="catForm.colonyId"
-          (ngModelChange)="onCatColonyChange()"
-          [attr.aria-invalid]="catColonyValidationError">
+              <p class="form-alert" role="alert" *ngIf="catColonyValidationError">
+                Selecciona una colonia para los gatos cuyo estado es «En colonia».
+              </p>
+            </label>
 
-          <option [ngValue]="null">Sin asignar</option>
+            <label class="field field-wide">
+              <span class="field-label">Observaciones</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">✎</span>
+                <textarea
+                  name="observations"
+                  [(ngModel)]="catForm.observations"
+                  maxlength="1000"
+                  rows="3"
+                  placeholder="Carácter, salud, alergias..."
+                ></textarea>
+              </span>
+            </label>
 
-          <option
-            *ngFor="let c of colonyOptions; trackBy: trackByItem"
-            [ngValue]="c.id">
-            {{ c.name }}
-          </option>
-        </select>
-      </span>
+            <div class="form-checks">
+              <label class="checkbox">
+                <input type="checkbox" name="neutered" [(ngModel)]="catForm.neutered" />
+                <span class="checkbox-box" aria-hidden="true">✓</span>
+                <span class="checkbox-text">Esterilizado</span>
+              </label>
 
-      <p
-        class="form-alert"
-        role="alert"
-        *ngIf="catColonyValidationError">
-        Selecciona una colonia para los gatos cuyo estado es «En colonia».
-      </p>
-    </label>
+              <label class="checkbox">
+                <input type="checkbox" name="identified" [(ngModel)]="catForm.identified" />
+                <span class="checkbox-box" aria-hidden="true">✓</span>
+                <span class="checkbox-text">Identificado</span>
+              </label>
+            </div>
+          </div>
 
-    <label class="field field-wide">
-      <span class="field-label">Observaciones</span>
-      <span class="field-box">
-        <span class="field-icon" aria-hidden="true">✎</span>
-        <textarea
-          name="observations"
-          [(ngModel)]="catForm.observations"
-          maxlength="1000"
-          rows="3"
-          placeholder="Carácter, salud, alergias..."></textarea>
-      </span>
-    </label>
+          <div class="form-actions">
+            <button
+              class="btn-secondary"
+              type="button"
+              [disabled]="savingCat"
+              (click)="closeForms()"
+            >
+              Cancelar
+            </button>
 
-    <div class="form-checks">
-      <label class="checkbox">
-        <input
-          type="checkbox"
-          name="neutered"
-          [(ngModel)]="catForm.neutered" />
-        <span class="checkbox-box" aria-hidden="true">✓</span>
-        <span class="checkbox-text">Esterilizado</span>
-      </label>
-
-      <label class="checkbox">
-        <input
-          type="checkbox"
-          name="identified"
-          [(ngModel)]="catForm.identified" />
-        <span class="checkbox-box" aria-hidden="true">✓</span>
-        <span class="checkbox-text">Identificado</span>
-      </label>
-    </div>
-
-  </div>
-
-  <div class="form-actions">
-    <button
-      class="btn-secondary"
-      type="button"
-      [disabled]="savingCat"
-      (click)="closeForms()">
-      Cancelar
-    </button>
-
-    <button
-      class="primary-button"
-      type="submit"
-      [disabled]="savingCat"
-      [attr.aria-busy]="savingCat">
-      <span
-        class="submit-icon"
-        [class.spinning]="savingCat"
-        aria-hidden="true">
-        {{ savingCat ? '◌' : '♡' }}
-      </span>
-      {{ catSubmitLabel }}
-    </button>
-  </div>
-
-</form>
-
+            <button
+              class="primary-button"
+              type="submit"
+              [disabled]="savingCat"
+              [attr.aria-busy]="savingCat"
+            >
+              <span class="submit-icon" [class.spinning]="savingCat" aria-hidden="true">
+                {{ savingCat ? '◌' : '♡' }}
+              </span>
+              {{ catSubmitLabel }}
+            </button>
+          </div>
+        </form>
 
         <div class="panel table-panel">
           <div class="table-scroll">
             <table class="data-table">
-              <caption class="sr-only">Listado de gatos registrados</caption>
+              <caption class="sr-only">
+                Listado de gatos registrados
+              </caption>
               <thead>
                 <tr>
                   <th scope="col">Gato</th>
@@ -442,63 +592,112 @@
                 <tr *ngFor="let cat of filteredCats; trackBy: trackByItem">
                   <th scope="row">
                     <div class="cell-cat">
-                      <span class="activity-symbol pink-bg" aria-hidden="true">{{ (cat.name ?? '?').charAt(0) }}</span>
-                      <span><strong>{{ cat.name ?? 'Sin nombre' }}</strong><small>{{ cat.code }}</small></span>
+                      <span class="activity-symbol pink-bg" aria-hidden="true">{{
+                        (cat.name ?? '?').charAt(0)
+                      }}</span>
+                      <span
+                        ><strong>{{ cat.name ?? 'Sin nombre' }}</strong
+                        ><small>{{ cat.code }}</small></span
+                      >
                     </div>
                   </th>
                   <td>{{ cat.colony }}</td>
                   <td>{{ cat.color }}</td>
                   <td>{{ cat.status }}</td>
-                  <td><span class="status-pill" [class.pending]="!cat.sterilized">{{ cat.sterilized ? 'Esterilizado' : 'Pendiente' }}</span></td>
+                  <td>
+                    <span class="status-pill" [class.pending]="!cat.sterilized">{{
+                      cat.sterilized ? 'Esterilizado' : 'Pendiente'
+                    }}</span>
+                  </td>
                   <td class="row-actions">
-                    <button type="button" class="btn-secondary" (click)="editCat(cat)">Editar</button>
-                    <button type="button" class="btn-secondary" (click)="deleteCat(cat)">Eliminar</button>
+                    <button type="button" class="btn-secondary" (click)="editCat(cat)">
+                      Editar
+                    </button>
+                    <button type="button" class="btn-secondary" (click)="deleteCat(cat)">
+                      Eliminar
+                    </button>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <div class="empty-state" *ngIf="filteredCats.length === 0">No se han encontrado gatos con esos criterios.</div>
+          <div class="empty-state" *ngIf="filteredCats.length === 0">
+            No se han encontrado gatos con esos criterios.
+          </div>
         </div>
       </section>
-
 
       <!-- INCIDENCIAS -->
       <section *ngIf="activeView === 'Incidencias'" aria-label="Listado de incidencias">
         <div class="toolbar">
           <label class="search-box">
             <span aria-hidden="true">⌕</span>
-            <input type="search" placeholder="Buscar por título, descripción, gato o colonia..." aria-label="Buscar incidencias" [(ngModel)]="searchTerm" />
+            <input
+              type="search"
+              placeholder="Buscar por título, descripción, gato o colonia..."
+              aria-label="Buscar incidencias"
+              [(ngModel)]="searchTerm"
+            />
           </label>
           <p class="result-count" aria-live="polite">{{ filteredIncidents.length }} incidencias</p>
         </div>
 
-        <form class="panel form-panel form-enter" *ngIf="incidentFormOpen" (ngSubmit)="saveIncident()">
+        <form
+          class="panel form-panel form-enter"
+          *ngIf="incidentFormOpen"
+          (ngSubmit)="saveIncident()"
+        >
           <div class="form-heading">
             <span class="form-icon pink-bg" aria-hidden="true">⚑</span>
             <div class="form-heading-text">
               <p class="eyebrow">INCIDENCIAS</p>
               <h2>{{ incidentForm.id === null ? 'Nueva incidencia' : 'Editar incidencia' }}</h2>
-              <p class="form-hint">Registra un problema y, si procede, relaciónalo con un gato o una colonia.</p>
+              <p class="form-hint">
+                Registra un problema y, si procede, relaciónalo con un gato o una colonia.
+              </p>
             </div>
-            <button class="icon-button form-close" type="button" aria-label="Cerrar formulario" (click)="closeForms()">✕</button>
+            <button
+              class="icon-button form-close"
+              type="button"
+              aria-label="Cerrar formulario"
+              (click)="closeForms()"
+            >
+              ✕
+            </button>
           </div>
           <p class="form-alert" role="alert" *ngIf="formError">{{ formError }}</p>
 
           <div class="form-grid">
             <label class="field field-wide">
-              <span class="field-label">Título <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-label"
+                >Título <i class="field-required" aria-hidden="true">*</i></span
+              >
               <span class="field-box">
                 <span class="field-icon" aria-hidden="true">⚑</span>
-                <input name="titulo" [(ngModel)]="incidentForm.titulo" required maxlength="120" placeholder="Ej. Gato con posible lesión" />
+                <input
+                  name="titulo"
+                  [(ngModel)]="incidentForm.titulo"
+                  required
+                  maxlength="120"
+                  placeholder="Ej. Gato con posible lesión"
+                />
               </span>
             </label>
 
             <label class="field field-wide">
-              <span class="field-label">Descripción <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-label"
+                >Descripción <i class="field-required" aria-hidden="true">*</i></span
+              >
               <span class="field-box">
                 <span class="field-icon" aria-hidden="true">✎</span>
-                <textarea name="descripcion" [(ngModel)]="incidentForm.descripcion" required maxlength="2000" rows="4" placeholder="Describe qué ha ocurrido y dónde..."></textarea>
+                <textarea
+                  name="descripcion"
+                  [(ngModel)]="incidentForm.descripcion"
+                  required
+                  maxlength="2000"
+                  rows="4"
+                  placeholder="Describe qué ha ocurrido y dónde..."
+                ></textarea>
               </span>
             </label>
 
@@ -507,7 +706,9 @@
               <span class="field-box">
                 <span class="field-icon" aria-hidden="true">◇</span>
                 <select name="tipo" [(ngModel)]="incidentForm.tipo">
-                  <option *ngFor="let tipo of incidentTypeOptions" [ngValue]="tipo">{{ incidentTypeLabels[tipo] }}</option>
+                  <option *ngFor="let tipo of incidentTypeOptions" [ngValue]="tipo">
+                    {{ incidentTypeLabels[tipo] }}
+                  </option>
                 </select>
               </span>
             </label>
@@ -517,7 +718,9 @@
               <span class="field-box">
                 <span class="field-icon" aria-hidden="true">!</span>
                 <select name="prioridad" [(ngModel)]="incidentForm.prioridad">
-                  <option *ngFor="let prioridad of incidentPriorityOptions" [ngValue]="prioridad">{{ incidentPriorityLabels[prioridad] }}</option>
+                  <option *ngFor="let prioridad of incidentPriorityOptions" [ngValue]="prioridad">
+                    {{ incidentPriorityLabels[prioridad] }}
+                  </option>
                 </select>
               </span>
             </label>
@@ -527,7 +730,9 @@
               <span class="field-box">
                 <span class="field-icon" aria-hidden="true">◷</span>
                 <select name="estado" [(ngModel)]="incidentForm.estado">
-                  <option *ngFor="let estado of incidentStatusOptions" [ngValue]="estado">{{ incidentStatusLabels[estado] }}</option>
+                  <option *ngFor="let estado of incidentStatusOptions" [ngValue]="estado">
+                    {{ incidentStatusLabels[estado] }}
+                  </option>
                 </select>
               </span>
             </label>
@@ -538,7 +743,9 @@
                 <span class="field-icon" aria-hidden="true">♢</span>
                 <select name="catId" [(ngModel)]="incidentForm.catId">
                   <option [ngValue]="null">Sin gato relacionado</option>
-                  <option *ngFor="let cat of filteredCats; trackBy: trackByItem" [ngValue]="cat.id">{{ cat.name || ('Gato #' + cat.id) }}</option>
+                  <option *ngFor="let cat of filteredCats; trackBy: trackByItem" [ngValue]="cat.id">
+                    {{ cat.name || 'Gato #' + cat.id }}
+                  </option>
                 </select>
               </span>
             </label>
@@ -549,16 +756,35 @@
                 <span class="field-icon" aria-hidden="true">⌂</span>
                 <select name="colonyId" [(ngModel)]="incidentForm.colonyId">
                   <option [ngValue]="null">Sin colonia relacionada</option>
-                  <option *ngFor="let colony of colonyOptions; trackBy: trackByItem" [ngValue]="colony.id">{{ colony.name }}</option>
+                  <option
+                    *ngFor="let colony of colonyOptions; trackBy: trackByItem"
+                    [ngValue]="colony.id"
+                  >
+                    {{ colony.name }}
+                  </option>
                 </select>
               </span>
             </label>
           </div>
 
           <div class="form-actions">
-            <button class="btn-secondary" type="button" [disabled]="savingIncident" (click)="closeForms()">Cancelar</button>
-            <button class="primary-button" type="submit" [disabled]="savingIncident" [attr.aria-busy]="savingIncident">
-              <span class="submit-icon" [class.spinning]="savingIncident" aria-hidden="true">{{ savingIncident ? '◌' : '♡' }}</span>
+            <button
+              class="btn-secondary"
+              type="button"
+              [disabled]="savingIncident"
+              (click)="closeForms()"
+            >
+              Cancelar
+            </button>
+            <button
+              class="primary-button"
+              type="submit"
+              [disabled]="savingIncident"
+              [attr.aria-busy]="savingIncident"
+            >
+              <span class="submit-icon" [class.spinning]="savingIncident" aria-hidden="true">{{
+                savingIncident ? '◌' : '♡'
+              }}</span>
               {{ incidentSubmitLabel }}
             </button>
           </div>
@@ -567,7 +793,9 @@
         <div class="panel table-panel">
           <div class="table-scroll">
             <table class="data-table">
-              <caption class="sr-only">Listado de incidencias registradas</caption>
+              <caption class="sr-only">
+                Listado de incidencias registradas
+              </caption>
               <thead>
                 <tr>
                   <th scope="col">Incidencia</th>
@@ -575,7 +803,9 @@
                   <th scope="col">Prioridad</th>
                   <th scope="col">Estado</th>
                   <th scope="col">Gato / colonia</th>
-                  <th scope="col" *ngIf="puedeGestionarIncidencias"><span class="sr-only">Acciones</span></th>
+                  <th scope="col" *ngIf="puedeGestionarIncidencias">
+                    <span class="sr-only">Acciones</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -590,63 +820,148 @@
                     </div>
                   </th>
                   <td>{{ incidentTypeLabel(incident.tipo) }}</td>
-                  <td><span class="status-pill" [class.pending]="incident.prioridad === 'ALTA' || incident.prioridad === 'URGENTE'">{{ incidentPriorityLabel(incident.prioridad) }}</span></td>
-                  <td><span class="status-pill" [class.pending]="incident.estado === 'ABIERTA' || incident.estado === 'EN_PROCESO'">{{ incidentStatusLabel(incident.estado) }}</span></td>
+                  <td>
+                    <span
+                      class="status-pill"
+                      [class.pending]="
+                        incident.prioridad === 'ALTA' || incident.prioridad === 'URGENTE'
+                      "
+                      >{{ incidentPriorityLabel(incident.prioridad) }}</span
+                    >
+                  </td>
+                  <td>
+                    <span
+                      class="status-pill"
+                      [class.pending]="
+                        incident.estado === 'ABIERTA' || incident.estado === 'EN_PROCESO'
+                      "
+                      >{{ incidentStatusLabel(incident.estado) }}</span
+                    >
+                  </td>
                   <td>
                     <span *ngIf="incident.catName">{{ incident.catName }}</span>
-                    <span *ngIf="!incident.catName && incident.colonyName">{{ incident.colonyName }}</span>
+                    <span *ngIf="!incident.catName && incident.colonyName">{{
+                      incident.colonyName
+                    }}</span>
                     <span *ngIf="!incident.catName && !incident.colonyName">Sin relación</span>
                   </td>
                   <td class="row-actions" *ngIf="puedeGestionarIncidencias">
-                    <button type="button" class="btn-secondary" (click)="editIncident(incident)">Editar</button>
-                    <button type="button" class="btn-secondary" (click)="deleteIncident(incident)">Eliminar</button>
+                    <button type="button" class="btn-secondary" (click)="editIncident(incident)">
+                      Editar
+                    </button>
+                    <button type="button" class="btn-secondary" (click)="deleteIncident(incident)">
+                      Eliminar
+                    </button>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <div class="empty-state" *ngIf="filteredIncidents.length === 0">No hay incidencias que coincidan con la búsqueda.</div>
+          <div class="empty-state" *ngIf="filteredIncidents.length === 0">
+            No hay incidencias que coincidan con la búsqueda.
+          </div>
         </div>
-        <p class="empty-state" *ngIf="!puedeGestionarIncidencias">Tu rol permite consultar las incidencias, pero no modificarlas.</p>
+        <p class="empty-state" *ngIf="!puedeGestionarIncidencias">
+          Tu rol permite consultar las incidencias, pero no modificarlas.
+        </p>
       </section>
 
       <!-- VOLUNTARIADO -->
-      <section *ngIf="activeView === 'Voluntariado' && esAdministrador()" aria-label="Personas con acceso">
+      <section
+        *ngIf="activeView === 'Voluntariado' && esAdministrador()"
+        aria-label="Personas con acceso"
+      >
         <form class="panel form-panel form-enter" *ngIf="userFormOpen" (ngSubmit)="saveUser()">
           <div class="form-heading">
             <span class="form-icon blue-bg" aria-hidden="true">♙</span>
             <div class="form-heading-text">
               <p class="eyebrow">VOLUNTARIADO</p>
-              <h2>Nueva persona con acceso</h2>
-              <p class="form-hint">Solo la administración puede crear cuentas nuevas.</p>
+              <h2>
+                {{ userForm.id === null ? 'Nueva persona con acceso' : 'Editar usuario' }}
+              </h2>
+
+              <p class="form-hint">
+                {{
+                  userForm.id === null
+                    ? 'Crea una cuenta y asigna sus permisos.'
+                    : 'Modifica los datos y permisos de esta cuenta.'
+                }}
+              </p>
             </div>
-            <button class="icon-button form-close" type="button" aria-label="Cerrar formulario" (click)="closeForms()">✕</button>
+            <button
+              class="icon-button form-close"
+              type="button"
+              aria-label="Cerrar formulario"
+              (click)="closeForms()"
+            >
+              ✕
+            </button>
           </div>
           <p class="form-alert" role="alert" *ngIf="formError">{{ formError }}</p>
           <div class="form-grid">
             <label class="field">
-              <span class="field-label">Nombre <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-label"
+                >Nombre <i class="field-required" aria-hidden="true">*</i></span
+              >
               <span class="field-box">
                 <span class="field-icon" aria-hidden="true">◉</span>
-                <input name="nombre" [(ngModel)]="userForm.nombre" required maxlength="100" placeholder="Nombre y apellidos" />
+                <input
+                  name="nombre"
+                  [(ngModel)]="userForm.nombre"
+                  required
+                  maxlength="100"
+                  placeholder="Nombre y apellidos"
+                />
               </span>
             </label>
             <label class="field">
-              <span class="field-label">Correo electrónico <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-label"
+                >Correo electrónico <i class="field-required" aria-hidden="true">*</i></span
+              >
               <span class="field-box">
                 <span class="field-icon" aria-hidden="true">@</span>
-                <input type="email" name="email" [(ngModel)]="userForm.email" required maxlength="200" placeholder="persona@example.com" autocomplete="off" />
+                <input
+                  type="email"
+                  name="email"
+                  [(ngModel)]="userForm.email"
+                  required
+                  maxlength="200"
+                  placeholder="persona@example.com"
+                  autocomplete="off"
+                />
               </span>
             </label>
+<label class="field">
+  <span class="field-label">
+    Contraseña
+    <i
+      class="field-required"
+      aria-hidden="true"
+      *ngIf="userForm.id === null"
+    >*</i>
+  </span>
+
+  <span class="field-box">
+    <span class="field-icon" aria-hidden="true">⚿</span>
+
+    <input
+      type="password"
+      name="password"
+      [(ngModel)]="userForm.password"
+      [required]="userForm.id === null"
+      minlength="8"
+      maxlength="100"
+      autocomplete="new-password"
+      [placeholder]="userForm.id === null
+        ? 'Mínimo 8 caracteres'
+        : 'Dejar vacío para mantener la actual'"
+    />
+  </span>
+</label>
             <label class="field">
-              <span class="field-label">Contraseña <i class="field-required" aria-hidden="true">*</i></span>
-              <span class="field-box">
-                <span class="field-icon" aria-hidden="true">⚿</span>
-                <input type="password" name="password" [(ngModel)]="userForm.password" required minlength="8" maxlength="100" autocomplete="new-password" placeholder="Mínimo 8 caracteres" />
-              </span>
-            </label>
-            <label class="field">
-              <span class="field-label">Rol <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-label"
+                >Rol <i class="field-required" aria-hidden="true">*</i></span
+              >
               <span class="field-box">
                 <span class="field-icon" aria-hidden="true">⚑</span>
                 <select name="rol" [(ngModel)]="userForm.rol">
@@ -663,72 +978,141 @@
             </div>
           </div>
           <div class="form-actions">
-            <button class="btn-secondary" type="button" [disabled]="savingUser" (click)="closeForms()">Cancelar</button>
-            <button class="primary-button" type="submit" [disabled]="savingUser" [attr.aria-busy]="savingUser">
-              <span class="submit-icon" [class.spinning]="savingUser" aria-hidden="true">{{ savingUser ? '◌' : '♡' }}</span> {{ userSubmitLabel }}
+            <button
+              class="btn-secondary"
+              type="button"
+              [disabled]="savingUser"
+              (click)="closeForms()"
+            >
+              Cancelar
+            </button>
+            <button
+              class="primary-button"
+              type="submit"
+              [disabled]="savingUser"
+              [attr.aria-busy]="savingUser"
+            >
+              <span class="submit-icon" [class.spinning]="savingUser" aria-hidden="true">{{
+                savingUser ? '◌' : '♡'
+              }}</span>
+              {{ userSubmitLabel }}
             </button>
           </div>
         </form>
         <p class="empty-state" *ngIf="usersMessage">{{ usersMessage }}</p>
 
-<div class="people-grid">
-  <article class="person-card" *ngFor="let person of users(); trackBy: trackByItem">
-    <span class="avatar" aria-hidden="true">
-      {{ person.nombre.charAt(0) }}
-    </span>
+        <div class="people-grid">
+          <article class="person-card" *ngFor="let person of users(); trackBy: trackByItem">
+            <span class="avatar" aria-hidden="true">
+              {{ person.nombre.charAt(0) }}
+            </span>
 
-    <h3>{{ person.nombre }}</h3>
+            <h3>{{ person.nombre }}</h3>
 
-    <span class="role-pill" [ngClass]="roleClass(person.rol)">
-      {{ roleLabel(person.rol) }}
-    </span>
+            <span class="role-pill" [ngClass]="roleClass(person.rol)">
+              {{ roleLabel(person.rol) }}
+            </span>
 
-    <p>{{ person.email }}</p>
+            <p>{{ person.email }}</p>
 
-    <button
-      type="button"
-      class="btn-secondary"
-      [disabled]="deletingUserId !== null"
-      (click)="deleteUser(person)"
-      [attr.aria-busy]="deletingUserId === person.id"
-    >
-      {{ deletingUserId === person.id ? 'Eliminando...' : 'Eliminar usuario' }}
-    </button>
-  </article>
+<div class="tile-actions">
+  <button
+    type="button"
+    class="btn-secondary"
+    [disabled]="deletingUserId !== null || savingUser"
+    (click)="editUser(person)"
+  >
+    Editar
+  </button>
+
+  <button
+    type="button"
+    class="btn-secondary"
+    [disabled]="deletingUserId !== null || person.id === usuario()?.id"
+    (click)="deleteUser(person)"
+    [attr.aria-busy]="deletingUserId === person.id"
+  >
+    {{ deletingUserId === person.id ? 'Eliminando...' : 'Eliminar' }}
+  </button>
 </div>
-
+          </article>
+        </div>
       </section>
 
       <!-- CALENDARIO -->
       <section class="calendar-layout" *ngIf="activeView === 'Calendario'">
         <div class="panel">
           <div class="panel-heading">
-            <div><h2>{{ calendarMonth }}</h2><p>Tareas previstas por día.</p></div>
+            <div>
+              <h2>{{ calendarMonth }}</h2>
+              <p>Tareas previstas por día.</p>
+            </div>
             <div class="calendar-actions" aria-label="Navegación del calendario">
-              <button class="icon-button" type="button" aria-label="Mes anterior" (click)="previousCalendarMonth()">‹</button>
+              <button
+                class="icon-button"
+                type="button"
+                aria-label="Mes anterior"
+                (click)="previousCalendarMonth()"
+              >
+                ‹
+              </button>
               <button class="btn-secondary" type="button" (click)="goToCurrentMonth()">Hoy</button>
-              <button class="icon-button" type="button" aria-label="Mes siguiente" (click)="nextCalendarMonth()">›</button>
+              <button
+                class="icon-button"
+                type="button"
+                aria-label="Mes siguiente"
+                (click)="nextCalendarMonth()"
+              >
+                ›
+              </button>
             </div>
           </div>
 
           <table class="calendar">
             <thead>
-              <tr><th scope="col" *ngFor="let d of weekDays">{{ d }}</th></tr>
+              <tr>
+                <th scope="col" *ngFor="let d of weekDays">{{ d }}</th>
+              </tr>
             </thead>
             <tbody>
               <tr *ngFor="let week of calendarWeeks">
                 <td
                   *ngFor="let day of week"
                   [class.empty]="day === null"
-                  [class.today]="day !== null && taskCalendarMonth.getFullYear() === now.getFullYear() && taskCalendarMonth.getMonth() === now.getMonth() && day === now.getDate()"
+                  [class.today]="
+                    day !== null &&
+                    taskCalendarMonth.getFullYear() === now.getFullYear() &&
+                    taskCalendarMonth.getMonth() === now.getMonth() &&
+                    day === now.getDate()
+                  "
                   [class.selected]="day !== null && isSelectedDay(day)"
                   [class.has-tasks]="day !== null && hasTasksOnDay(day)"
-                  [attr.aria-current]="day !== null && taskCalendarMonth.getFullYear() === now.getFullYear() && taskCalendarMonth.getMonth() === now.getMonth() && day === now.getDate() ? 'date' : null">
+                  [attr.aria-current]="
+                    day !== null &&
+                    taskCalendarMonth.getFullYear() === now.getFullYear() &&
+                    taskCalendarMonth.getMonth() === now.getMonth() &&
+                    day === now.getDate()
+                      ? 'date'
+                      : null
+                  "
+                >
                   <ng-container *ngIf="day !== null">
-                    <button type="button" class="day-button" (click)="selectCalendarDay(day)" [attr.aria-label]="'Tareas del ' + day + ' de ' + calendarMonth">
+                    <button
+                      type="button"
+                      class="day-button"
+                      (click)="selectCalendarDay(day)"
+                      [attr.aria-label]="'Tareas del ' + day + ' de ' + calendarMonth"
+                    >
                       <span class="day-number">{{ day }}</span>
-                      <span class="event-chip" *ngFor="let task of tasksForDay(day) | slice:0:2" [ngClass]="taskToneClass(task.tipo)">{{ task.titulo }}</span>
-                      <span class="event-more" *ngIf="tasksForDay(day).length > 2">+{{ tasksForDay(day).length - 2 }}</span>
+                      <span
+                        class="event-chip"
+                        *ngFor="let task of tasksForDay(day) | slice: 0 : 2"
+                        [ngClass]="taskToneClass(task.tipo)"
+                        >{{ task.titulo }}</span
+                      >
+                      <span class="event-more" *ngIf="tasksForDay(day).length > 2"
+                        >+{{ tasksForDay(day).length - 2 }}</span
+                      >
                     </button>
                   </ng-container>
                 </td>
@@ -739,67 +1123,132 @@
 
         <aside class="panel">
           <div class="panel-heading">
-            <div><h2>{{ selectedDayLabel }}</h2><p>{{ selectedDayTasks.length }} tarea{{ selectedDayTasks.length === 1 ? '' : 's' }} programada{{ selectedDayTasks.length === 1 ? '' : 's' }}.</p></div>
-            <button class="primary-button" type="button" *ngIf="canManageTasks()" (click)="newTaskForSelectedDay()"><span>＋</span> Nueva tarea</button>
+            <div>
+              <h2>{{ selectedDayLabel }}</h2>
+              <p>
+                {{ selectedDayTasks.length }} tarea{{
+                  selectedDayTasks.length === 1 ? '' : 's'
+                }}
+                programada{{ selectedDayTasks.length === 1 ? '' : 's' }}.
+              </p>
+            </div>
+            <button
+              class="primary-button"
+              type="button"
+              *ngIf="canManageTasks()"
+              (click)="newTaskForSelectedDay()"
+            >
+              <span>＋</span> Nueva tarea
+            </button>
           </div>
 
           <p class="form-alert" role="alert" *ngIf="tasksLoadError">{{ tasksLoadError }}</p>
 
           <div class="activity-list">
-            <article class="activity-item task-item" *ngFor="let task of selectedDayTasks; trackBy: trackByItem">
-              <span class="activity-symbol" [ngClass]="taskToneClass(task.tipo)">{{ task.titulo.charAt(0) }}</span>
+            <article
+              class="activity-item task-item"
+              *ngFor="let task of selectedDayTasks; trackBy: trackByItem"
+            >
+              <span class="activity-symbol" [ngClass]="taskToneClass(task.tipo)">{{
+                task.titulo.charAt(0)
+              }}</span>
               <div class="task-summary">
-                <p><strong>{{ task.titulo }}</strong></p>
+                <p>
+                  <strong>{{ task.titulo }}</strong>
+                </p>
                 <small>{{ taskTypeLabel(task.tipo) }} · {{ taskStatusLabel(task.estado) }}</small>
-                <small>{{ task.colonyName || task.catName || 'Sin relación' }} · {{ task.fechaHora | date:'HH:mm' }}</small>
+                <small
+                  >{{ task.colonyName || task.catName || 'Sin relación' }} ·
+                  {{ task.fechaHora | date: 'HH:mm' }}</small
+                >
               </div>
               <div class="task-actions" *ngIf="canManageTasks()">
-                <button type="button" class="btn-secondary" (click)="toggleTaskCompleted(task)">{{ task.estado === 'COMPLETADA' ? 'Pendiente' : 'Completar' }}</button>
+                <button type="button" class="btn-secondary" (click)="toggleTaskCompleted(task)">
+                  {{ task.estado === 'COMPLETADA' ? 'Pendiente' : 'Completar' }}
+                </button>
                 <button type="button" class="btn-secondary" (click)="editTask(task)">Editar</button>
-                <button type="button" class="btn-secondary" (click)="deleteTask(task)">Eliminar</button>
+                <button type="button" class="btn-secondary" (click)="deleteTask(task)">
+                  Eliminar
+                </button>
               </div>
             </article>
-            <div class="empty-state" *ngIf="selectedDayTasks.length === 0">No hay tareas para este día.</div>
+            <div class="empty-state" *ngIf="selectedDayTasks.length === 0">
+              No hay tareas para este día.
+            </div>
           </div>
         </aside>
 
-        <form class="panel form-panel form-enter" *ngIf="taskFormOpen" (ngSubmit)="saveTask()" novalidate>
+        <form
+          class="panel form-panel form-enter"
+          *ngIf="taskFormOpen"
+          (ngSubmit)="saveTask()"
+          novalidate
+        >
           <div class="form-heading">
             <span class="form-icon violet-bg" aria-hidden="true">▦</span>
             <div class="form-heading-text">
               <p class="eyebrow">TAREAS</p>
               <h2>{{ taskForm.id === null ? 'Nueva tarea' : 'Editar tarea' }}</h2>
-              <p class="form-hint">Gestiona visitas, alimentación, revisiones y cuidados programados.</p>
+              <p class="form-hint">
+                Gestiona visitas, alimentación, revisiones y cuidados programados.
+              </p>
             </div>
-            <button class="icon-button form-close" type="button" aria-label="Cerrar formulario" (click)="closeForms()">✕</button>
+            <button
+              class="icon-button form-close"
+              type="button"
+              aria-label="Cerrar formulario"
+              (click)="closeForms()"
+            >
+              ✕
+            </button>
           </div>
 
           <p class="form-alert" role="alert" *ngIf="formError">{{ formError }}</p>
 
           <div class="form-grid">
             <label class="field field-wide">
-              <span class="field-label">Título <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-label"
+                >Título <i class="field-required" aria-hidden="true">*</i></span
+              >
               <span class="field-box">
                 <span class="field-icon" aria-hidden="true">▦</span>
-                <input name="titulo" [(ngModel)]="taskForm.titulo" required maxlength="120" placeholder="Ej. Alimentación colonia norte" />
+                <input
+                  name="titulo"
+                  [(ngModel)]="taskForm.titulo"
+                  required
+                  maxlength="120"
+                  placeholder="Ej. Alimentación colonia norte"
+                />
               </span>
-              <small class="field-error" *ngIf="taskFieldErrors.titulo">{{ taskFieldErrors.titulo }}</small>
+              <small class="field-error" *ngIf="taskFieldErrors.titulo">{{
+                taskFieldErrors.titulo
+              }}</small>
             </label>
 
             <label class="field field-wide">
               <span class="field-label">Descripción</span>
               <span class="field-box">
                 <span class="field-icon" aria-hidden="true">✎</span>
-                <textarea name="descripcion" [(ngModel)]="taskForm.descripcion" maxlength="2000" rows="3" placeholder="Detalles, observaciones o recordatorio..."></textarea>
+                <textarea
+                  name="descripcion"
+                  [(ngModel)]="taskForm.descripcion"
+                  maxlength="2000"
+                  rows="3"
+                  placeholder="Detalles, observaciones o recordatorio..."
+                ></textarea>
               </span>
             </label>
 
             <label class="field">
-              <span class="field-label">Tipo <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-label"
+                >Tipo <i class="field-required" aria-hidden="true">*</i></span
+              >
               <span class="field-box">
                 <span class="field-icon" aria-hidden="true">◇</span>
                 <select name="tipo" [(ngModel)]="taskForm.tipo">
-                  <option *ngFor="let tipo of tareaTipoOptions" [ngValue]="tipo">{{ tareaTipoLabels[tipo] }}</option>
+                  <option *ngFor="let tipo of tareaTipoOptions" [ngValue]="tipo">
+                    {{ tareaTipoLabels[tipo] }}
+                  </option>
                 </select>
               </span>
             </label>
@@ -809,18 +1258,29 @@
               <span class="field-box">
                 <span class="field-icon" aria-hidden="true">◷</span>
                 <select name="estado" [(ngModel)]="taskForm.estado">
-                  <option *ngFor="let estado of tareaEstadoOptions" [ngValue]="estado">{{ tareaEstadoLabels[estado] }}</option>
+                  <option *ngFor="let estado of tareaEstadoOptions" [ngValue]="estado">
+                    {{ tareaEstadoLabels[estado] }}
+                  </option>
                 </select>
               </span>
             </label>
 
             <label class="field field-wide">
-              <span class="field-label">Fecha y hora <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-label"
+                >Fecha y hora <i class="field-required" aria-hidden="true">*</i></span
+              >
               <span class="field-box">
                 <span class="field-icon" aria-hidden="true">⌚</span>
-                <input type="datetime-local" name="fechaHora" [(ngModel)]="taskForm.fechaHora" required />
+                <input
+                  type="datetime-local"
+                  name="fechaHora"
+                  [(ngModel)]="taskForm.fechaHora"
+                  required
+                />
               </span>
-              <small class="field-error" *ngIf="taskFieldErrors.fechaHora">{{ taskFieldErrors.fechaHora }}</small>
+              <small class="field-error" *ngIf="taskFieldErrors.fechaHora">{{
+                taskFieldErrors.fechaHora
+              }}</small>
             </label>
 
             <label class="field">
@@ -829,7 +1289,9 @@
                 <span class="field-icon" aria-hidden="true">♢</span>
                 <select name="catId" [(ngModel)]="taskForm.catId">
                   <option [ngValue]="null">Sin gato relacionado</option>
-                  <option *ngFor="let cat of filteredCats; trackBy: trackByItem" [ngValue]="cat.id">{{ cat.name || ('Gato #' + cat.id) }}</option>
+                  <option *ngFor="let cat of filteredCats; trackBy: trackByItem" [ngValue]="cat.id">
+                    {{ cat.name || 'Gato #' + cat.id }}
+                  </option>
                 </select>
               </span>
             </label>
@@ -840,17 +1302,42 @@
                 <span class="field-icon" aria-hidden="true">⌂</span>
                 <select name="colonyId" [(ngModel)]="taskForm.colonyId">
                   <option [ngValue]="null">Sin colonia relacionada</option>
-                  <option *ngFor="let colony of colonyOptions; trackBy: trackByItem" [ngValue]="colony.id">{{ colony.name }}</option>
+                  <option
+                    *ngFor="let colony of colonyOptions; trackBy: trackByItem"
+                    [ngValue]="colony.id"
+                  >
+                    {{ colony.name }}
+                  </option>
                 </select>
               </span>
             </label>
           </div>
 
           <div class="form-actions">
-            <button class="btn-secondary" type="button" [disabled]="savingTask" (click)="closeForms()">Cancelar</button>
-            <button class="primary-button" type="submit" [disabled]="savingTask" [attr.aria-busy]="savingTask">
-              <span class="submit-icon" [class.spinning]="savingTask" aria-hidden="true">{{ savingTask ? '◌' : '♡' }}</span>
-              {{ savingTask ? 'Guardando tarea...' : taskForm.id === null ? 'Guardar tarea' : 'Actualizar tarea' }}
+            <button
+              class="btn-secondary"
+              type="button"
+              [disabled]="savingTask"
+              (click)="closeForms()"
+            >
+              Cancelar
+            </button>
+            <button
+              class="primary-button"
+              type="submit"
+              [disabled]="savingTask"
+              [attr.aria-busy]="savingTask"
+            >
+              <span class="submit-icon" [class.spinning]="savingTask" aria-hidden="true">{{
+                savingTask ? '◌' : '♡'
+              }}</span>
+              {{
+                savingTask
+                  ? 'Guardando tarea...'
+                  : taskForm.id === null
+                    ? 'Guardar tarea'
+                    : 'Actualizar tarea'
+              }}
             </button>
           </div>
         </form>
@@ -861,19 +1348,35 @@
         <div class="panel profile-card">
           <span class="avatar" aria-hidden="true">{{ usuario()?.nombre?.charAt(0) }}</span>
           <h2>{{ usuario()?.nombre }}</h2>
-          <span class="role-pill" [ngClass]="roleClass(usuario()?.rol ?? '')">{{ roleLabel(usuario()?.rol) }}</span>
+          <span class="role-pill" [ngClass]="roleClass(usuario()?.rol ?? '')">{{
+            roleLabel(usuario()?.rol)
+          }}</span>
           <dl class="detail-list">
-            <div><dt>Correo</dt><dd>{{ usuario()?.email }}</dd></div>
-            <div><dt>Colonias</dt><dd>{{ colonyCount }}</dd></div>
+            <div>
+              <dt>Correo</dt>
+              <dd>{{ usuario()?.email }}</dd>
+            </div>
+            <div>
+              <dt>Colonias</dt>
+              <dd>{{ colonyCount }}</dd>
+            </div>
           </dl>
-          <button class="primary-button logout-button" type="button" (click)="logout()"><span class="submit-icon">⏻</span> Cerrar sesión</button>
+          <button class="primary-button logout-button" type="button" (click)="logout()">
+            <span class="submit-icon">⏻</span> Cerrar sesión
+          </button>
         </div>
         <div class="panel">
           <div class="panel-heading">
-            <div><h2>Roles</h2><p>Permisos de cada tipo de usuario.</p></div>
+            <div>
+              <h2>Roles</h2>
+              <p>Permisos de cada tipo de usuario.</p>
+            </div>
           </div>
           <ul class="role-list">
-            <li *ngFor="let role of roles"><strong>{{ role.name }}</strong>{{ role.description }}</li>
+            <li *ngFor="let role of roles">
+              <strong>{{ role.name }}</strong
+              >{{ role.description }}
+            </li>
           </ul>
         </div>
       </section>

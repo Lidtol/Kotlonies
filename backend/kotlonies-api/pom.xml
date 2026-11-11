@@ -41,9 +41,17 @@
         <!-- Pruebas -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Pruebas de seguridad -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
 
         <!-- JSON -->
         <dependency>
@@ -75,6 +83,13 @@
             <artifactId>mysql-connector-j</artifactId>
             <version>9.5.0</version>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- Base de datos de pruebas en memoria -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

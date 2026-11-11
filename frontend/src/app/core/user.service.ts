@@ -19,6 +19,16 @@ export interface UserPayload {
   activo: boolean;
 }
 
+
+export interface UserUpdatePayload {
+  nombre: string;
+  email: string;
+  password?: string | null;
+  rol: string;
+  activo: boolean;
+}
+
+
 @Injectable({ providedIn: 'root' })
 export class UserService {
   private readonly http = inject(HttpClient);
@@ -28,7 +38,19 @@ export class UserService {
       'http://localhost:8080/api/usuarios',
       { withCredentials: true }
     );
+
+
   }
+
+
+updateUser(id: number, payload: UserUpdatePayload): Observable<BackendUser> {
+  return this.http.put<BackendUser>(
+    `http://localhost:8080/api/usuarios/${id}`,
+    payload,
+    { withCredentials: true }
+  );
+}
+
 
   createUser(payload: UserPayload): Observable<BackendUser> {
     return this.http.post<BackendUser>(
