@@ -45,6 +45,15 @@
             <scope>test</scope>
         </dependency>
 
+
+        <!-- Pruebas de seguridad -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+
         <!-- JSON -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
