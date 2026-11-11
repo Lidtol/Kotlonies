@@ -704,35 +704,154 @@
         <div class="panel">
           <div class="panel-heading">
             <div><h2>{{ calendarMonth }}</h2><p>Tareas previstas por día.</p></div>
+            <div class="calendar-actions" aria-label="Navegación del calendario">
+              <button class="icon-button" type="button" aria-label="Mes anterior" (click)="previousCalendarMonth()">‹</button>
+              <button class="btn-secondary" type="button" (click)="goToCurrentMonth()">Hoy</button>
+              <button class="icon-button" type="button" aria-label="Mes siguiente" (click)="nextCalendarMonth()">›</button>
+            </div>
           </div>
+
           <table class="calendar">
             <thead>
               <tr><th scope="col" *ngFor="let d of weekDays">{{ d }}</th></tr>
             </thead>
             <tbody>
               <tr *ngFor="let week of calendarWeeks">
-                <td *ngFor="let day of week" [class.empty]="day === null" [class.today]="day === todayDay" [attr.aria-current]="day === todayDay ? 'date' : null">
+                <td
+                  *ngFor="let day of week"
+                  [class.empty]="day === null"
+                  [class.today]="day !== null && taskCalendarMonth.getFullYear() === now.getFullYear() && taskCalendarMonth.getMonth() === now.getMonth() && day === now.getDate()"
+                  [class.selected]="day !== null && isSelectedDay(day)"
+                  [class.has-tasks]="day !== null && hasTasksOnDay(day)"
+                  [attr.aria-current]="day !== null && taskCalendarMonth.getFullYear() === now.getFullYear() && taskCalendarMonth.getMonth() === now.getMonth() && day === now.getDate() ? 'date' : null">
                   <ng-container *ngIf="day !== null">
-                    <span class="day-number">{{ day }}</span>
-                    <span class="event-chip" *ngFor="let e of eventsOn(day)" [ngClass]="e.tone + '-bg'">{{ e.title }}</span>
+                    <button type="button" class="day-button" (click)="selectCalendarDay(day)" [attr.aria-label]="'Tareas del ' + day + ' de ' + calendarMonth">
+                      <span class="day-number">{{ day }}</span>
+                      <span class="event-chip" *ngFor="let task of tasksForDay(day) | slice:0:2" [ngClass]="taskToneClass(task.tipo)">{{ task.titulo }}</span>
+                      <span class="event-more" *ngIf="tasksForDay(day).length > 2">+{{ tasksForDay(day).length - 2 }}</span>
+                    </button>
                   </ng-container>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
+
         <aside class="panel">
           <div class="panel-heading">
-            <div><h2>Próximas tareas</h2><p>Lo que viene en los próximos días.</p></div>
+            <div><h2>{{ selectedDayLabel }}</h2><p>{{ selectedDayTasks.length }} tarea{{ selectedDayTasks.length === 1 ? '' : 's' }} programada{{ selectedDayTasks.length === 1 ? '' : 's' }}.</p></div>
+            <button class="primary-button" type="button" *ngIf="canManageTasks()" (click)="newTaskForSelectedDay()"><span>＋</span> Nueva tarea</button>
           </div>
+
           <div class="activity-list">
-            <article class="activity-item" *ngFor="let e of upcomingEvents">
-              <span class="activity-symbol" [ngClass]="e.tone + '-bg'">{{ e.day }}</span>
-              <div><p><strong>{{ e.title }}</strong></p><small>{{ e.colony }} · {{ e.day }} de {{ calendarMonth }}</small></div>
+            <article class="activity-item task-item" *ngFor="let task of selectedDayTasks; trackBy: trackByItem">
+              <span class="activity-symbol" [ngClass]="taskToneClass(task.tipo)">{{ task.titulo.charAt(0) }}</span>
+              <div class="task-summary">
+                <p><strong>{{ task.titulo }}</strong></p>
+                <small>{{ taskTypeLabel(task.tipo) }} · {{ taskStatusLabel(task.estado) }}</small>
+                <small>{{ task.colonyName || task.catName || 'Sin relación' }} · {{ task.fechaHora | date:'HH:mm' }}</small>
+              </div>
+              <div class="task-actions" *ngIf="canManageTasks()">
+                <button type="button" class="btn-secondary" (click)="toggleTaskCompleted(task)">{{ task.estado === 'COMPLETADA' ? 'Pendiente' : 'Completar' }}</button>
+                <button type="button" class="btn-secondary" (click)="editTask(task)">Editar</button>
+                <button type="button" class="btn-secondary" (click)="deleteTask(task)">Eliminar</button>
+              </div>
             </article>
-            <div class="empty-state" *ngIf="upcomingEvents.length === 0">Todavía no hay tareas programadas.</div>
+            <div class="empty-state" *ngIf="selectedDayTasks.length === 0">No hay tareas para este día.</div>
           </div>
         </aside>
+
+        <form class="panel form-panel form-enter" *ngIf="taskFormOpen" (ngSubmit)="saveTask()" novalidate>
+          <div class="form-heading">
+            <span class="form-icon violet-bg" aria-hidden="true">▦</span>
+            <div class="form-heading-text">
+              <p class="eyebrow">TAREAS</p>
+              <h2>{{ taskForm.id === null ? 'Nueva tarea' : 'Editar tarea' }}</h2>
+              <p class="form-hint">Gestiona visitas, alimentación, revisiones y cuidados programados.</p>
+            </div>
+            <button class="icon-button form-close" type="button" aria-label="Cerrar formulario" (click)="closeForms()">✕</button>
+          </div>
+
+          <p class="form-alert" role="alert" *ngIf="formError">{{ formError }}</p>
+
+          <div class="form-grid">
+            <label class="field field-wide">
+              <span class="field-label">Título <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">▦</span>
+                <input name="titulo" [(ngModel)]="taskForm.titulo" required maxlength="120" placeholder="Ej. Alimentación colonia norte" />
+              </span>
+              <small class="field-error" *ngIf="taskFieldErrors.titulo">{{ taskFieldErrors.titulo }}</small>
+            </label>
+
+            <label class="field field-wide">
+              <span class="field-label">Descripción</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">✎</span>
+                <textarea name="descripcion" [(ngModel)]="taskForm.descripcion" maxlength="2000" rows="3" placeholder="Detalles, observaciones o recordatorio..."></textarea>
+              </span>
+            </label>
+
+            <label class="field">
+              <span class="field-label">Tipo <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">◇</span>
+                <select name="tipo" [(ngModel)]="taskForm.tipo">
+                  <option *ngFor="let tipo of tareaTipoOptions" [ngValue]="tipo">{{ tareaTipoLabels[tipo] }}</option>
+                </select>
+              </span>
+            </label>
+
+            <label class="field">
+              <span class="field-label">Estado</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">◷</span>
+                <select name="estado" [(ngModel)]="taskForm.estado">
+                  <option *ngFor="let estado of tareaEstadoOptions" [ngValue]="estado">{{ tareaEstadoLabels[estado] }}</option>
+                </select>
+              </span>
+            </label>
+
+            <label class="field field-wide">
+              <span class="field-label">Fecha y hora <i class="field-required" aria-hidden="true">*</i></span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">⌚</span>
+                <input type="datetime-local" name="fechaHora" [(ngModel)]="taskForm.fechaHora" required />
+              </span>
+              <small class="field-error" *ngIf="taskFieldErrors.fechaHora">{{ taskFieldErrors.fechaHora }}</small>
+            </label>
+
+            <label class="field">
+              <span class="field-label">Gato relacionado</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">♢</span>
+                <select name="catId" [(ngModel)]="taskForm.catId">
+                  <option [ngValue]="null">Sin gato relacionado</option>
+                  <option *ngFor="let cat of filteredCats; trackBy: trackByItem" [ngValue]="cat.id">{{ cat.name || ('Gato #' + cat.id) }}</option>
+                </select>
+              </span>
+            </label>
+
+            <label class="field">
+              <span class="field-label">Colonia relacionada</span>
+              <span class="field-box">
+                <span class="field-icon" aria-hidden="true">⌂</span>
+                <select name="colonyId" [(ngModel)]="taskForm.colonyId">
+                  <option [ngValue]="null">Sin colonia relacionada</option>
+                  <option *ngFor="let colony of colonyOptions; trackBy: trackByItem" [ngValue]="colony.id">{{ colony.name }}</option>
+                </select>
+              </span>
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn-secondary" type="button" [disabled]="savingTask" (click)="closeForms()">Cancelar</button>
+            <button class="primary-button" type="submit" [disabled]="savingTask" [attr.aria-busy]="savingTask">
+              <span class="submit-icon" [class.spinning]="savingTask" aria-hidden="true">{{ savingTask ? '◌' : '♡' }}</span>
+              {{ savingTask ? 'Guardando tarea...' : taskForm.id === null ? 'Guardar tarea' : 'Actualizar tarea' }}
+            </button>
+          </div>
+        </form>
       </section>
 
       <!-- PERFIL -->

@@ -25,6 +25,14 @@ import {
   IncidentStatus,
 } from './core/incident.service';
 
+import {
+  BackendTarea,
+  TareaPayload,
+  TareaService,
+  TareaTipo,
+  TareaEstado,
+} from './core/tarea.service';
+
 type CatFilter = 'Todos' | 'Esterilizados' | 'Pendientes';
 
 type Section =
@@ -126,6 +134,20 @@ interface IncidentForm {
   colonyId: number | null;
 }
 
+type TaskType = TareaTipo;
+type TaskStatus = TareaEstado;
+
+interface TaskForm {
+  id: number | null;
+  titulo: string;
+  descripcion: string;
+  tipo: TaskType;
+  estado: TaskStatus;
+  fechaHora: string;
+  catId: number | null;
+  colonyId: number | null;
+}
+
 const PLACEHOLDER_IMAGE =
   'https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=600&q=80';
 
@@ -151,6 +173,8 @@ export class AppComponent {
 
   private readonly incidentService = inject(IncidentService);
 
+  private readonly tareaService = inject(TareaService);
+
   private readonly changeDetector = inject(ChangeDetectorRef);
 
   readonly usuario = this.auth.usuario;
@@ -173,9 +197,19 @@ export class AppComponent {
 
   private readonly rawIncidents = signal<BackendIncident[]>([]);
 
+  private readonly rawTasks = signal<BackendTarea[]>([]);
+
   incidentFormOpen = false;
 
   incidentForm: IncidentForm = this.emptyIncidentForm();
+
+  taskFormOpen = false;
+
+  taskForm: TaskForm = this.emptyTaskForm();
+
+  savingTask = false;
+
+  taskFieldErrors: Partial<Record<keyof TaskForm, string>> = {};
 
   // Datos derivados como signals: los arrays base deben ser signals también; si son
 
@@ -374,6 +408,21 @@ export class AppComponent {
     'CERRADA',
   ];
 
+  readonly tareaTipoLabels: Record<TaskType, string> = {
+    ALIMENTACION: 'Alimentación',
+    VISITA: 'Visita',
+    VETERINARIO: 'Veterinario',
+    REVISION: 'Revisión',
+    OTRO: 'Otro',
+  };
+
+  readonly tareaEstadoLabels: Record<TaskStatus, string> = {
+    PENDIENTE: 'Pendiente',
+    COMPLETADA: 'Completada',
+  };
+
+  readonly tareaTipoOptions: TaskType[] = ['ALIMENTACION', 'VISITA', 'VETERINARIO', 'REVISION', 'OTRO'];
+
   readonly roles = [
     { name: 'Administración', description: 'Gestiona usuarios, colonias y gatos.' },
 
@@ -382,7 +431,7 @@ export class AppComponent {
     { name: 'Consulta', description: 'Solo puede consultar la información.' },
   ];
 
-  // Calendario (sin backend todavía: no hay tareas)
+  readonly tareaEstadoOptions: TaskStatus[] = ['PENDIENTE', 'COMPLETADA'];
 
   private readonly now = new Date();
 
@@ -392,24 +441,42 @@ export class AppComponent {
     month: 'long',
   });
 
-  readonly calendarMonth = this.now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-
-  readonly todayDay = this.now.getDate();
-
   readonly weekDays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
-  readonly events: { day: number; title: string; colony: string; tone: string }[] = [];
+  taskCalendarMonth = new Date(this.now.getFullYear(), this.now.getMonth(), 1);
 
-  readonly upcomingEvents = this.events.filter((e) => e.day >= this.todayDay);
+  taskSelectedDate = this.localDateKey(this.now);
 
-  readonly calendarWeeks = this.buildCalendar(this.now.getFullYear(), this.now.getMonth());
+  get todayDay(): number {
+    return this.now.getDate();
+  }
+
+  get calendarMonth(): string {
+    return this.taskCalendarMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+  }
+
+  get calendarWeeks(): (number | null)[][] {
+    return this.buildCalendar(
+      this.taskCalendarMonth.getFullYear(),
+      this.taskCalendarMonth.getMonth(),
+    );
+  }
+
+  get selectedDayTasks(): BackendTarea[] {
+    const selectedDay = this.selectedCalendarDay();
+    if (selectedDay === null) return [];
+    return this.tasksForDay(selectedDay);
+  }
+
+  get upcomingTasks(): BackendTarea[] {
+    return [...this.rawTasks()]
+      .filter((task) => new Date(task.fechaHora).getTime() >= new Date().setHours(0, 0, 0, 0))
+      .sort((a, b) => new Date(a.fechaHora).getTime() - new Date(b.fechaHora).getTime())
+      .slice(0, 6);
+  }
 
   constructor() {
-    // Reacciona a la sesión: tras el login o al recuperarla al recargar la página.
-
     effect(() => {
-      // No decidimos vista hasta saber si había sesión abierta en el backend.
-
       if (this.auth.cargando()) return;
 
       const user = this.auth.usuario();
@@ -423,6 +490,8 @@ export class AppComponent {
 
         this.loadIncidents();
 
+        this.loadTasks();
+
         this.loadUsers(user.rol);
       } else {
         this.activeView = 'Login';
@@ -432,6 +501,8 @@ export class AppComponent {
         this.rawCats.set([]);
 
         this.rawIncidents.set([]);
+
+        this.rawTasks.set([]);
 
         this.users.set([]);
       }
@@ -598,10 +669,6 @@ export class AppComponent {
 
   roleClass(rol: string): string {
     return rol === 'ADMIN' ? 'admin' : rol === 'CONSULTA' ? 'viewer' : '';
-  }
-
-  eventsOn(day: number) {
-    return this.events.filter((event) => event.day === day);
   }
 
   // ---------- Navegación ----------
@@ -845,6 +912,10 @@ export class AppComponent {
 
     this.incidentFormOpen = false;
 
+    this.taskFormOpen = false;
+
+    this.taskFieldErrors = {};
+
     this.formError = null;
 
     this.catColonyValidationError = false;
@@ -1053,6 +1124,220 @@ export class AppComponent {
     });
   }
 
+  canManageTasks(): boolean {
+    const rol = this.usuario()?.rol;
+    return rol === 'ADMIN' || rol === 'CUIDADOR';
+  }
+
+  taskToneClass(tipo: TaskType): string {
+    return {
+      ALIMENTACION: 'task-alimentacion',
+      VISITA: 'task-visita',
+      VETERINARIO: 'task-veterinario',
+      REVISION: 'task-revision',
+      OTRO: 'task-otro',
+    }[tipo];
+  }
+
+  taskTypeLabel(tipo: TaskType): string {
+    return this.tareaTipoLabels[tipo] ?? tipo;
+  }
+
+  taskStatusLabel(estado: TaskStatus): string {
+    return this.tareaEstadoLabels[estado] ?? estado;
+  }
+
+  isSelectedDay(day: number): boolean {
+    const candidateDate = new Date(
+      this.taskCalendarMonth.getFullYear(),
+      this.taskCalendarMonth.getMonth(),
+      day,
+    );
+    return this.taskSelectedDate === this.localDateKey(candidateDate);
+  }
+
+  selectedCalendarDay(): number | null {
+    if (!this.taskSelectedDate) return null;
+    const [year, month, day] = this.taskSelectedDate.split('-').map(Number);
+    if (!year || !month || !day) return null;
+    return new Date(year, month - 1, day).getDate();
+  }
+
+  selectCalendarDay(day: number): void {
+    const selectedDate = new Date(
+      this.taskCalendarMonth.getFullYear(),
+      this.taskCalendarMonth.getMonth(),
+      day,
+    );
+    this.taskSelectedDate = this.localDateKey(selectedDate);
+  }
+
+  previousCalendarMonth(): void {
+    this.taskCalendarMonth = new Date(
+      this.taskCalendarMonth.getFullYear(),
+      this.taskCalendarMonth.getMonth() - 1,
+      1,
+    );
+  }
+
+  nextCalendarMonth(): void {
+    this.taskCalendarMonth = new Date(
+      this.taskCalendarMonth.getFullYear(),
+      this.taskCalendarMonth.getMonth() + 1,
+      1,
+    );
+  }
+
+  goToCurrentMonth(): void {
+    this.taskCalendarMonth = new Date(this.now.getFullYear(), this.now.getMonth(), 1);
+    this.taskSelectedDate = this.localDateKey(this.now);
+  }
+
+  hasTasksOnDay(day: number): boolean {
+    return this.tasksForDay(day).length > 0;
+  }
+
+  tasksForDay(day: number): BackendTarea[] {
+    const calendarDay = new Date(
+      this.taskCalendarMonth.getFullYear(),
+      this.taskCalendarMonth.getMonth(),
+      day,
+    );
+    const dayKey = this.localDateKey(calendarDay);
+    return this.rawTasks().filter((task) => this.localDateKey(task.fechaHora) === dayKey);
+  }
+
+  get selectedDayLabel(): string {
+    if (!this.taskSelectedDate) return 'Día';
+    const selected = new Date(`${this.taskSelectedDate}T12:00:00`);
+    return selected.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+
+  newTaskForSelectedDay(dateValue?: string): void {
+    if (!this.canManageTasks()) {
+      this.formError = 'No tienes permisos para gestionar tareas.';
+      return;
+    }
+
+    const dayKey = dateValue ?? this.taskSelectedDate;
+    const now = new Date();
+    const selectedDate = dayKey ? new Date(`${dayKey}T${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`) : new Date();
+
+    this.taskForm = {
+      id: null,
+      titulo: '',
+      descripcion: '',
+      tipo: 'VISITA',
+      estado: 'PENDIENTE',
+      fechaHora: this.toDatetimeLocalValue(selectedDate),
+      catId: null,
+      colonyId: null,
+    };
+
+    this.taskFieldErrors = {};
+    this.formError = null;
+    this.taskFormOpen = true;
+  }
+
+  editTask(task: BackendTarea): void {
+    if (!this.canManageTasks()) return;
+
+    this.taskForm = {
+      id: task.id,
+      titulo: task.titulo,
+      descripcion: task.descripcion ?? '',
+      tipo: task.tipo,
+      estado: task.estado,
+      fechaHora: this.toDatetimeLocalValue(new Date(task.fechaHora)),
+      catId: task.catId ?? null,
+      colonyId: task.colonyId ?? null,
+    };
+    this.taskFieldErrors = {};
+    this.formError = null;
+    this.taskFormOpen = true;
+  }
+
+  saveTask(): void {
+    if (this.savingTask) return;
+
+    if (!this.canManageTasks()) {
+      this.formError = 'No tienes permisos para gestionar tareas.';
+      return;
+    }
+
+    const f = this.taskForm;
+    const errors: Partial<Record<keyof TaskForm, string>> = {};
+
+    if (!f.titulo.trim()) {
+      errors.titulo = 'El título es obligatorio.';
+    }
+
+    if (!f.fechaHora) {
+      errors.fechaHora = 'La fecha y hora son obligatorias.';
+    }
+
+    this.taskFieldErrors = errors;
+
+    if (Object.keys(errors).length > 0) {
+      this.formError = 'Revisa los datos de la tarea antes de guardar.';
+      return;
+    }
+
+    const payload: TareaPayload = {
+      titulo: f.titulo.trim(),
+      descripcion: f.descripcion.trim() || null,
+      tipo: f.tipo,
+      estado: f.estado,
+      fechaHora: this.normalizeDateTime(f.fechaHora),
+      catId: f.catId,
+      colonyId: f.colonyId,
+    };
+
+    const request =
+      f.id === null
+        ? this.tareaService.createTarea(payload)
+        : this.tareaService.updateTarea(f.id, payload);
+
+    this.savingTask = true;
+    this.formError = null;
+
+    request.subscribe({
+      next: () => {
+        this.savingTask = false;
+        this.taskFormOpen = false;
+        this.taskFieldErrors = {};
+        this.loadTasks();
+      },
+      error: (e: HttpErrorResponse) => {
+        this.savingTask = false;
+        this.formError = this.errorText(e);
+      },
+    });
+  }
+
+  toggleTaskCompleted(task: BackendTarea): void {
+    if (!this.canManageTasks()) {
+      this.formError = 'No tienes permisos para gestionar tareas.';
+      return;
+    }
+
+    this.tareaService.completarTarea(task.id, task.estado !== 'COMPLETADA').subscribe({
+      next: () => this.loadTasks(),
+      error: (e: HttpErrorResponse) => (this.formError = this.errorText(e)),
+    });
+  }
+
+  deleteTask(task: BackendTarea): void {
+    if (!this.canManageTasks()) return;
+
+    if (!confirm(`¿Eliminar la tarea «${task.titulo}»?`)) return;
+
+    this.tareaService.deleteTarea(task.id).subscribe({
+      next: () => this.loadTasks(),
+      error: (e: HttpErrorResponse) => (this.formError = this.errorText(e)),
+    });
+  }
+
   incidentTypeLabel(tipo: IncidentType): string {
     return this.incidentTypeLabels[tipo] ?? tipo;
   }
@@ -1091,6 +1376,13 @@ export class AppComponent {
     });
   }
 
+  private loadTasks(): void {
+    this.tareaService.getTareas().subscribe({
+      next: (tasks) => this.rawTasks.set(tasks),
+      error: () => this.rawTasks.set([]),
+    });
+  }
+
   private loadUsers(rol: string): void {
     if (rol !== 'ADMIN') {
       this.users.set([]);
@@ -1125,6 +1417,28 @@ export class AppComponent {
     if (e.status === 403) return 'No tienes permisos para esta operación.';
 
     return 'No se ha podido completar la operación.';
+  }
+
+  private localDateKey(date: Date | string): string {
+    const value = typeof date === 'string' ? new Date(date) : date;
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private toDatetimeLocalValue(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  private normalizeDateTime(value: string): string {
+    if (!value) return value;
+    return value.length === 16 ? `${value}:00` : value;
   }
 
   private emptyColonyForm(): ColonyForm {
@@ -1167,6 +1481,19 @@ export class AppComponent {
 
       catId: null,
 
+      colonyId: null,
+    };
+  }
+
+  private emptyTaskForm(): TaskForm {
+    return {
+      id: null,
+      titulo: '',
+      descripcion: '',
+      tipo: 'VISITA',
+      estado: 'PENDIENTE',
+      fechaHora: this.toDatetimeLocalValue(new Date()),
+      catId: null,
       colonyId: null,
     };
   }
