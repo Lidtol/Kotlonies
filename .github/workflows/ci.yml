@@ -28,6 +28,9 @@ jobs:
           java-version: '21'
           cache: maven
 
+      - name: Dar permisos al Maven Wrapper
+        run: chmod +x ./mvnw
+
       - name: Run backend tests
         run: ./mvnw --batch-mode test
 
