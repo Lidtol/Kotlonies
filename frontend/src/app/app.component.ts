@@ -433,7 +433,9 @@ export class AppComponent {
 
   readonly tareaEstadoOptions: TaskStatus[] = ['PENDIENTE', 'COMPLETADA'];
 
-  private readonly now = new Date();
+  readonly now = new Date();
+
+  tasksLoadError: string | null = null;
 
   readonly todayLabel = this.now.toLocaleDateString('es-ES', {
     weekday: 'long',
@@ -463,9 +465,13 @@ export class AppComponent {
   }
 
   get selectedDayTasks(): BackendTarea[] {
-    const selectedDay = this.selectedCalendarDay();
-    if (selectedDay === null) return [];
-    return this.tasksForDay(selectedDay);
+    if (!this.taskSelectedDate) return [];
+
+    const selected = this.selectedCalendarDate();
+    if (!selected) return [];
+
+    const selectedKey = this.localDateKey(selected);
+    return this.rawTasks().filter((task) => this.localDateKey(task.fechaHora) === selectedKey);
   }
 
   get upcomingTasks(): BackendTarea[] {
@@ -1157,10 +1163,15 @@ export class AppComponent {
   }
 
   selectedCalendarDay(): number | null {
+    const selected = this.selectedCalendarDate();
+    return selected ? selected.getDate() : null;
+  }
+
+  private selectedCalendarDate(): Date | null {
     if (!this.taskSelectedDate) return null;
     const [year, month, day] = this.taskSelectedDate.split('-').map(Number);
     if (!year || !month || !day) return null;
-    return new Date(year, month - 1, day).getDate();
+    return new Date(year, month - 1, day);
   }
 
   selectCalendarDay(day: number): void {
@@ -1173,24 +1184,49 @@ export class AppComponent {
   }
 
   previousCalendarMonth(): void {
-    this.taskCalendarMonth = new Date(
+    const nextMonth = new Date(
       this.taskCalendarMonth.getFullYear(),
       this.taskCalendarMonth.getMonth() - 1,
       1,
     );
+    this.taskCalendarMonth = nextMonth;
+    this.syncSelectedDateToCalendarMonth();
   }
 
   nextCalendarMonth(): void {
-    this.taskCalendarMonth = new Date(
+    const nextMonth = new Date(
       this.taskCalendarMonth.getFullYear(),
       this.taskCalendarMonth.getMonth() + 1,
       1,
     );
+    this.taskCalendarMonth = nextMonth;
+    this.syncSelectedDateToCalendarMonth();
   }
 
   goToCurrentMonth(): void {
     this.taskCalendarMonth = new Date(this.now.getFullYear(), this.now.getMonth(), 1);
     this.taskSelectedDate = this.localDateKey(this.now);
+  }
+
+  private syncSelectedDateToCalendarMonth(): void {
+    const selected = this.selectedCalendarDate();
+    if (!selected) {
+      this.taskSelectedDate = this.localDateKey(this.taskCalendarMonth);
+      return;
+    }
+
+    const monthDayLimit = new Date(
+      this.taskCalendarMonth.getFullYear(),
+      this.taskCalendarMonth.getMonth() + 1,
+      0,
+    ).getDate();
+    const day = Math.min(selected.getDate(), monthDayLimit);
+    const nextSelectedDate = new Date(
+      this.taskCalendarMonth.getFullYear(),
+      this.taskCalendarMonth.getMonth(),
+      day,
+    );
+    this.taskSelectedDate = this.localDateKey(nextSelectedDate);
   }
 
   hasTasksOnDay(day: number): boolean {
@@ -1377,9 +1413,17 @@ export class AppComponent {
   }
 
   private loadTasks(): void {
+    this.tasksLoadError = null;
+
     this.tareaService.getTareas().subscribe({
-      next: (tasks) => this.rawTasks.set(tasks),
-      error: () => this.rawTasks.set([]),
+      next: (tasks) => {
+        this.rawTasks.set(tasks);
+        this.tasksLoadError = null;
+      },
+      error: () => {
+        this.rawTasks.set([]);
+        this.tasksLoadError = 'No se pudieron cargar las tareas. Comprueba la conexión con el servidor.';
+      },
     });
   }
 

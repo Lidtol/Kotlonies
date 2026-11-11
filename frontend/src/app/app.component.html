@@ -743,6 +743,8 @@
             <button class="primary-button" type="button" *ngIf="canManageTasks()" (click)="newTaskForSelectedDay()"><span>＋</span> Nueva tarea</button>
           </div>
 
+          <p class="form-alert" role="alert" *ngIf="tasksLoadError">{{ tasksLoadError }}</p>
+
           <div class="activity-list">
             <article class="activity-item task-item" *ngFor="let task of selectedDayTasks; trackBy: trackByItem">
               <span class="activity-symbol" [ngClass]="taskToneClass(task.tipo)">{{ task.titulo.charAt(0) }}</span>
