@@ -25,6 +25,7 @@ import com.kotlonies_api.service.ColonyService;
 import com.kotlonies_api.service.IncidenciaService;
 import com.kotlonies_api.service.TareaService;
 import com.kotlonies_api.service.UsuarioService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -72,6 +73,16 @@ class BusinessFlowIntegrationTest {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @BeforeEach
+    void limpiarBaseDeDatos() {
+        // La BD H2 se comparte entre clases de test; otras pueden dejar datos persistidos.
+        incidenciaRepository.deleteAll();
+        tareaRepository.deleteAll();
+        catRepository.deleteAll();
+        colonyRepository.deleteAll();
+        usuarioRepository.deleteAll();
+    }
 
     @Test
     void shouldCreateColonyAndAssociateCatsWithDifferentStatuses() {
