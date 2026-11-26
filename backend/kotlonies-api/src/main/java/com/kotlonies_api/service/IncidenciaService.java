@@ -2,6 +2,7 @@ package com.kotlonies_api.service;
 
 import com.kotlonies_api.dto.IncidenciaRequest;
 import com.kotlonies_api.dto.IncidenciaResponse;
+import com.kotlonies_api.exception.RecursoNoEncontradoException;
 import com.kotlonies_api.model.Cat;
 import com.kotlonies_api.model.Colony;
 import com.kotlonies_api.model.Incidencia;
@@ -9,10 +10,8 @@ import com.kotlonies_api.repository.CatRepository;
 import com.kotlonies_api.repository.ColonyRepository;
 import com.kotlonies_api.repository.IncidenciaRepository;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -73,9 +72,8 @@ public class IncidenciaService {
 
     private Incidencia findOrThrow(Long id) {
         return incidenciaRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "No se encontró ninguna incidencia con ID " + id
+            .orElseThrow(() -> new RecursoNoEncontradoException(
+                    "No se encontró ninguna incidencia con ID " + id
             ));
     }
 
@@ -92,16 +90,14 @@ public class IncidenciaService {
         Cat cat = request.catId() == null
             ? null
             : catRepository.findById(request.catId())
-                .orElseThrow(() -> new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new RecursoNoEncontradoException(
                     "No se encontró ningún gato con ID " + request.catId()
                 ));
 
         Colony colony = request.colonyId() == null
             ? null
             : colonyRepository.findById(request.colonyId())
-                .orElseThrow(() -> new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new RecursoNoEncontradoException(
                     "No se encontró ninguna colonia con ID " + request.colonyId()
                 ));
 

@@ -16,8 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
+import com.kotlonies_api.exception.RecursoNoEncontradoException;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -209,13 +208,12 @@ class IncidenciaServiceTest {
     void obtenerIncidenciaInexistenteLanzaNotFound() {
         when(incidenciaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        ResponseStatusException exception = assertThrows(
-                ResponseStatusException.class,
+        RecursoNoEncontradoException exception = assertThrows(
+                RecursoNoEncontradoException.class,
                 () -> incidenciaService.findById(99L)
         );
 
-        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-        assertTrue(exception.getReason().contains("99"));
+        assertTrue(exception.getMessage().contains("99"));
 
         verify(incidenciaRepository).findById(99L);
     }
@@ -224,12 +222,11 @@ class IncidenciaServiceTest {
     void eliminarIncidenciaInexistenteLanzaNotFound() {
         when(incidenciaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        ResponseStatusException exception = assertThrows(
-                ResponseStatusException.class,
+        assertThrows(
+                RecursoNoEncontradoException.class,
                 () -> incidenciaService.delete(99L)
         );
 
-        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
         verify(incidenciaRepository).findById(99L);
     }
 
@@ -276,13 +273,12 @@ class IncidenciaServiceTest {
 
         when(catRepository.findById(99L)).thenReturn(Optional.empty());
 
-        ResponseStatusException exception = assertThrows(
-                ResponseStatusException.class,
+        RecursoNoEncontradoException exception = assertThrows(
+                RecursoNoEncontradoException.class,
                 () -> incidenciaService.create(request)
         );
 
-        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-        assertTrue(exception.getReason().contains("99"));
+        assertTrue(exception.getMessage().contains("99"));
         verify(catRepository).findById(99L);
         verify(incidenciaRepository, never()).save(any(Incidencia.class));
     }
@@ -301,13 +297,12 @@ class IncidenciaServiceTest {
 
         when(colonyRepository.findById(77L)).thenReturn(Optional.empty());
 
-        ResponseStatusException exception = assertThrows(
-                ResponseStatusException.class,
+        RecursoNoEncontradoException exception = assertThrows(
+                RecursoNoEncontradoException.class,
                 () -> incidenciaService.create(request)
         );
 
-        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-        assertTrue(exception.getReason().contains("77"));
+        assertTrue(exception.getMessage().contains("77"));
         verify(colonyRepository).findById(77L);
         verify(incidenciaRepository, never()).save(any(Incidencia.class));
     }

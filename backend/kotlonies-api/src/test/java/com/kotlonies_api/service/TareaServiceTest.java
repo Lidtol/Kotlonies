@@ -15,8 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
+import com.kotlonies_api.exception.RecursoNoEncontradoException;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
@@ -229,17 +228,15 @@ class TareaServiceTest {
     void operacionesSobreTareaInexistenteLanzanNotFound() {
         when(tareaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        ResponseStatusException exFind = assertThrows(
-                ResponseStatusException.class,
+        assertThrows(
+                RecursoNoEncontradoException.class,
                 () -> tareaService.findById(99L)
         );
-        assertEquals(HttpStatus.NOT_FOUND, exFind.getStatusCode());
 
-        ResponseStatusException exDelete = assertThrows(
-                ResponseStatusException.class,
+        assertThrows(
+                RecursoNoEncontradoException.class,
                 () -> tareaService.delete(99L)
         );
-        assertEquals(HttpStatus.NOT_FOUND, exDelete.getStatusCode());
 
         verify(tareaRepository, times(2)).findById(99L);
     }
@@ -286,13 +283,12 @@ class TareaServiceTest {
 
         when(catRepository.findById(77L)).thenReturn(Optional.empty());
 
-        ResponseStatusException ex = assertThrows(
-                ResponseStatusException.class,
+        RecursoNoEncontradoException ex = assertThrows(
+                RecursoNoEncontradoException.class,
                 () -> tareaService.create(request)
         );
 
-        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
-        assertTrue(ex.getReason().contains("77"));
+        assertTrue(ex.getMessage().contains("77"));
         verify(catRepository).findById(77L);
         verify(tareaRepository, never()).save(any(Tarea.class));
     }
@@ -311,13 +307,12 @@ class TareaServiceTest {
 
         when(colonyRepository.findById(88L)).thenReturn(Optional.empty());
 
-        ResponseStatusException ex = assertThrows(
-                ResponseStatusException.class,
+        RecursoNoEncontradoException ex = assertThrows(
+                RecursoNoEncontradoException.class,
                 () -> tareaService.create(request)
         );
 
-        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
-        assertTrue(ex.getReason().contains("88"));
+        assertTrue(ex.getMessage().contains("88"));
         verify(colonyRepository).findById(88L);
         verify(tareaRepository, never()).save(any(Tarea.class));
     }

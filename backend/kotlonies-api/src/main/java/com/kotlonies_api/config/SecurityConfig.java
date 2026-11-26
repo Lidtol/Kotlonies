@@ -1,26 +1,21 @@
-
 package com.kotlonies_api.config;
 
 import com.kotlonies_api.repository.UsuarioRepository;
-import org.springframework.security.web.csrf.CsrfFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.csrf.CsrfTokenRequestHandler;
@@ -29,9 +24,25 @@ import org.springframework.util.StringUtils;
 
 import java.util.function.Supplier;
 
+/**
+ * Configuración de seguridad de la API.
+ *
+ * - Autenticación con sesión (cookie JSESSIONID). El login lo hace
+ *   AuthController + AuthService, que guardan el SecurityContext en la sesión.
+ * - CSRF con cookie XSRF-TOKEN legible desde Angular, que la devuelve
+ *   en la cabecera X-XSRF-TOKEN.
+ * - Permisos por rol con @PreAuthorize en los controladores.
+ * - ActiveUserFilter invalida la sesión si el usuario se desactiva o se borra.
+ */
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    private final UsuarioRepository usuarioRepository;
+
+    public SecurityConfig(UsuarioRepository usuarioRepository) {
+        this.usuarioRepository = usuarioRepository;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -64,14 +75,13 @@ public class SecurityConfig {
                         )
                 )
                 .addFilterBefore(
-        new ActiveUserFilter(usuarioRepository),
-        CsrfFilter.class
-)
+                        new ActiveUserFilter(usuarioRepository),
+                        CsrfFilter.class
+                )
                 .formLogin(form -> form.disable())
                 .logout(logout -> logout.disable());
-        return http.build();
 
-        
+        return http.build();
     }
 
     @Bean
@@ -79,19 +89,10 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public AuthenticationManager authenticationManager(
-            UserDetailsService userDetailsService,
-            PasswordEncoder passwordEncoder
-    ) {
-        DaoAuthenticationProvider provider =
-                new DaoAuthenticationProvider(userDetailsService);
-
-        provider.setPasswordEncoder(passwordEncoder);
-
-        return new ProviderManager(provider);
-    }
-
+    /**
+     * Manejador de CSRF para una SPA: genera la cookie en cada respuesta y
+     * acepta el token tal cual cuando llega en la cabecera X-XSRF-TOKEN.
+     */
     private static final class SpaCsrfTokenRequestHandler
             implements CsrfTokenRequestHandler {
 
@@ -123,21 +124,6 @@ public class SecurityConfig {
             return StringUtils.hasText(headerValue)
                     ? this.plain.resolveCsrfTokenValue(request, csrfToken)
                     : this.xor.resolveCsrfTokenValue(request, csrfToken);
-
-
-                }
-
-
-
-
-
         }
-
-
-        private final UsuarioRepository usuarioRepository;
-
-public SecurityConfig(UsuarioRepository usuarioRepository) {
-    this.usuarioRepository = usuarioRepository;
-}
-
+    }
 }

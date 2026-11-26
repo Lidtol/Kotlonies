@@ -11,8 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
+import com.kotlonies_api.exception.RecursoNoEncontradoException;
 
 import java.lang.reflect.Field;
 import java.time.LocalDate;
@@ -88,17 +87,15 @@ class GatoServiceTest {
     void operacionesSobreGatoInexistenteLanzanRespuestaNotFound() {
         when(catRepository.findById(99L)).thenReturn(Optional.empty());
 
-        ResponseStatusException exFind = assertThrows(
-                ResponseStatusException.class,
+        assertThrows(
+                RecursoNoEncontradoException.class,
                 () -> catService.findById(99L)
         );
-        assertEquals(HttpStatus.NOT_FOUND, exFind.getStatusCode());
 
-        ResponseStatusException exDelete = assertThrows(
-                ResponseStatusException.class,
+        assertThrows(
+                RecursoNoEncontradoException.class,
                 () -> catService.delete(99L)
         );
-        assertEquals(HttpStatus.NOT_FOUND, exDelete.getStatusCode());
 
         verify(catRepository, times(2)).findById(99L);
     }
@@ -190,13 +187,12 @@ class GatoServiceTest {
         request.setName("Milo");
         request.setStatus(null);
 
-        ResponseStatusException ex = assertThrows(
-                ResponseStatusException.class,
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
                 () -> catService.create(request)
         );
 
-        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
-        assertTrue(ex.getReason().contains("Cat status is required"));
+        assertTrue(ex.getMessage().contains("El estado del gato es obligatorio"));
         verify(catRepository, never()).save(any(Cat.class));
     }
 
@@ -207,13 +203,12 @@ class GatoServiceTest {
         request.setStatus("EN_COLONIA");
         request.setColonyId(null);
 
-        ResponseStatusException ex = assertThrows(
-                ResponseStatusException.class,
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
                 () -> catService.create(request)
         );
 
-        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
-        assertTrue(ex.getReason().contains("assigned colony"));
+        assertTrue(ex.getMessage().contains("colonia asignada"));
         verify(catRepository, never()).save(any(Cat.class));
     }
 
@@ -258,7 +253,7 @@ class GatoServiceTest {
     }
 
     @Test
-    void crearGatoConColoniaInexistenteLanzaBadRequest() {
+    void crearGatoConColoniaInexistenteLanzaNotFound() {
         CatRequest request = new CatRequest();
         request.setName("Milo");
         request.setStatus("EN_COLONIA");
@@ -266,13 +261,12 @@ class GatoServiceTest {
 
         when(colonyRepository.findById(99L)).thenReturn(Optional.empty());
 
-        ResponseStatusException ex = assertThrows(
-                ResponseStatusException.class,
+        RecursoNoEncontradoException ex = assertThrows(
+                RecursoNoEncontradoException.class,
                 () -> catService.create(request)
         );
 
-        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
-        assertTrue(ex.getReason().contains("No colony found with ID 99"));
+        assertTrue(ex.getMessage().contains("No se encontró ninguna colonia con ID 99"));
         verify(colonyRepository).findById(99L);
         verify(catRepository, never()).save(any(Cat.class));
     }
