@@ -11,9 +11,12 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 /**
- * Carga los usuarios desde la base de datos (JPA) para Spring Security,
- * de modo que los roles (ROLE_ADMIN, ROLE_CUIDADOR, ROLE_CONSULTA) se
- * lean de la tabla "usuarios" gestionada por el ORM.
+ * Indica a Spring Security de dónde salen los usuarios (tabla "usuarios").
+ *
+ * El login de la API no pasa por aquí: lo valida AuthService para poder
+ * devolver nuestros propios mensajes de error. Aun así, este bean es
+ * necesario: si no existe ningún UserDetailsService, Spring Boot crea un
+ * usuario en memoria "user" con una contraseña aleatoria que aparece en el log.
  */
 @Service
 public class DatabaseUserDetailsService implements UserDetailsService {

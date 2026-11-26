@@ -2,6 +2,7 @@ package com.kotlonies_api.service;
 
 import com.kotlonies_api.dto.TareaRequest;
 import com.kotlonies_api.dto.TareaResponse;
+import com.kotlonies_api.exception.RecursoNoEncontradoException;
 import com.kotlonies_api.model.Cat;
 import com.kotlonies_api.model.Colony;
 import com.kotlonies_api.model.EstadoTarea;
@@ -9,10 +10,8 @@ import com.kotlonies_api.model.Tarea;
 import com.kotlonies_api.repository.CatRepository;
 import com.kotlonies_api.repository.ColonyRepository;
 import com.kotlonies_api.repository.TareaRepository;
-import jakarta.transaction.Transactional;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -33,7 +32,7 @@ public class TareaService {
         this.colonyRepository = colonyRepository;
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<TareaResponse> findAll() {
         return tareaRepository.findAllByOrderByFechaHoraAsc()
             .stream()
@@ -41,7 +40,7 @@ public class TareaService {
             .toList();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public TareaResponse findById(Long id) {
         return TareaResponse.from(findOrThrow(id));
     }
@@ -74,9 +73,8 @@ public class TareaService {
 
     private Tarea findOrThrow(Long id) {
         return tareaRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "No se encontró ninguna tarea con ID " + id
+            .orElseThrow(() -> new RecursoNoEncontradoException(
+                    "No se encontró ninguna tarea con ID " + id
             ));
     }
 
@@ -90,16 +88,14 @@ public class TareaService {
         Cat cat = request.catId() == null
             ? null
             : catRepository.findById(request.catId())
-                .orElseThrow(() -> new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new RecursoNoEncontradoException(
                     "No se encontró ningún gato con ID " + request.catId()
                 ));
 
         Colony colony = request.colonyId() == null
             ? null
             : colonyRepository.findById(request.colonyId())
-                .orElseThrow(() -> new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new RecursoNoEncontradoException(
                     "No se encontró ninguna colonia con ID " + request.colonyId()
                 ));
 

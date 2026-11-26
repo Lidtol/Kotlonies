@@ -2,6 +2,7 @@ package com.kotlonies_api.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -11,6 +12,18 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Todas las respuestas de error de la API tienen el mismo formato:
+ * { "error": "...", "mensaje": "..." }  (o "campos" en los errores de validación).
+ *
+ * - RecursoNoEncontradoException (y ColonyNotFoundException) -> 404
+ * - IllegalArgumentException (reglas de negocio)              -> 400
+ * - MethodArgumentNotValidException (@Valid en los DTO)       -> 400
+ * - HttpMessageNotReadableException (JSON mal formado)        -> 400
+ * - DuplicateColonyNameException                              -> 409
+ * - CredencialesInvalidasException / AuthenticationException  -> 401
+ * - AccessDeniedException (@PreAuthorize)                     -> 403
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -95,6 +108,18 @@ public class GlobalExceptionHandler {
                                 .body(respuesta);
         }
 
+        @ExceptionHandler(HttpMessageNotReadableException.class)
+        public ResponseEntity<Map<String, String>> manejarCuerpoIlegible(
+                        HttpMessageNotReadableException exception) {
+                Map<String, String> respuesta = new LinkedHashMap<>();
+                respuesta.put("error", "Petición no válida");
+                respuesta.put("mensaje", "El cuerpo de la petición no es un JSON válido o tiene valores incorrectos");
+
+                return ResponseEntity
+                                .badRequest()
+                                .body(respuesta);
+        }
+
         @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
         public ResponseEntity<Map<String, String>> manejarIntegridad(
                         org.springframework.dao.DataIntegrityViolationException exception) {
@@ -105,14 +130,6 @@ public class GlobalExceptionHandler {
                 return ResponseEntity
                                 .badRequest()
                                 .body(respuesta);
-        }
-
-        @ExceptionHandler(ColonyNotFoundException.class)
-        public ResponseEntity<Map<String, String>> manejarColoniaNoEncontrada(ColonyNotFoundException exception) {
-                Map<String, String> respuesta = new LinkedHashMap<>();
-                respuesta.put("error", "Recurso no encontrado");
-                respuesta.put("mensaje", exception.getMessage());
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respuesta);
         }
 
         @ExceptionHandler(DuplicateColonyNameException.class)

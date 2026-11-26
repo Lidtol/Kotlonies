@@ -3,14 +3,13 @@ package com.kotlonies_api.service;
 
 import com.kotlonies_api.dto.CatRequest;
 import com.kotlonies_api.dto.CatResponse;
+import com.kotlonies_api.exception.RecursoNoEncontradoException;
 import com.kotlonies_api.model.Cat;
 import com.kotlonies_api.model.Colony;
 import com.kotlonies_api.repository.CatRepository;
 import com.kotlonies_api.repository.ColonyRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -66,9 +65,8 @@ public class CatService {
 
     private Cat findOrThrow(Long id) {
         return catRepository.findById(id).orElseThrow(() ->
-                new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "No cat found with ID " + id
+                new RecursoNoEncontradoException(
+                        "No se encontró ningún gato con ID " + id
                 ));
     }
 
@@ -93,9 +91,8 @@ public class CatService {
             cat.setColony(null);
         } else {
             Colony colony = colonyRepository.findById(request.getColonyId())
-                    .orElseThrow(() -> new ResponseStatusException(
-                            HttpStatus.BAD_REQUEST,
-                            "No colony found with ID " + request.getColonyId()
+                    .orElseThrow(() -> new RecursoNoEncontradoException(
+                            "No se encontró ninguna colonia con ID " + request.getColonyId()
                     ));
 
             cat.setColony(colony);
@@ -104,9 +101,8 @@ public class CatService {
 
     private String normalizeStatus(String status) {
         if (status == null || status.isBlank()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Cat status is required"
+            throw new IllegalArgumentException(
+                    "El estado del gato es obligatorio"
             );
         }
 
@@ -116,16 +112,14 @@ public class CatService {
     private void validateBusinessRules(String status, Long colonyId) {
 
         if (!VALID_STATUSES.contains(status)) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Invalid cat status: " + status
+            throw new IllegalArgumentException(
+                    "Estado del gato no válido: " + status
             );
         }
 
         if ("EN_COLONIA".equals(status) && colonyId == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "A cat in a colony must have an assigned colony"
+            throw new IllegalArgumentException(
+                    "Un gato con estado EN_COLONIA debe tener una colonia asignada"
             );
         }
     }
@@ -138,9 +132,8 @@ public class CatService {
         try {
             return LocalDate.parse(value);
         } catch (DateTimeParseException e) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Invalid birth date"
+            throw new IllegalArgumentException(
+                    "La fecha de nacimiento no es válida"
             );
         }
     }

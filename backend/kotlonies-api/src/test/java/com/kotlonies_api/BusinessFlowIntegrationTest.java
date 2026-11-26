@@ -7,6 +7,7 @@ import com.kotlonies_api.dto.TareaRequest;
 import com.kotlonies_api.dto.UsuarioRequest;
 import com.kotlonies_api.dto.UsuarioUpdateRequest;
 import com.kotlonies_api.exception.DuplicateColonyNameException;
+import com.kotlonies_api.exception.RecursoNoEncontradoException;
 import com.kotlonies_api.model.Cat;
 import com.kotlonies_api.model.EstadoIncidencia;
 import com.kotlonies_api.model.EstadoTarea;
@@ -31,7 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -357,7 +357,7 @@ class BusinessFlowIntegrationTest {
                 false,
                 true,
                 null
-        ))).isInstanceOf(ResponseStatusException.class);
+        ))).isInstanceOf(IllegalArgumentException.class);
         assertThat(catRepository.count()).isEqualTo(catCountBeforeInvalid);
 
         long incidenciaCountBeforeInvalid = incidenciaRepository.count();
@@ -369,7 +369,7 @@ class BusinessFlowIntegrationTest {
                 EstadoIncidencia.ABIERTA,
                 999L,
                 colonia.id()
-        ))).isInstanceOf(ResponseStatusException.class);
+        ))).isInstanceOf(RecursoNoEncontradoException.class);
         assertThat(incidenciaRepository.count()).isEqualTo(incidenciaCountBeforeInvalid);
     }
 

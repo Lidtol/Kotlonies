@@ -20,7 +20,12 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    /** Valida las credenciales contra la tabla de usuarios (ORM + BCrypt). */
+    /**
+     * Valida las credenciales contra la tabla de usuarios (ORM + BCrypt).
+     * Primero comprobamos la contraseña y después si la cuenta está activa:
+     * así solo se avisa de que una cuenta está desactivada a quien conoce
+     * su contraseña, y no se revela qué correos existen.
+     */
     @Transactional(readOnly = true)
     public Usuario validarCredenciales(String email, String password) {
         Usuario usuario = repository.findByEmailIgnoreCase(email)
@@ -38,14 +43,6 @@ public class AuthService {
         }
 
         return usuario;
-    }
-
-    @Transactional(readOnly = true)
-    public Usuario obtenerPorEmail(String email) {
-        return repository.findByEmailIgnoreCase(email)
-                .orElseThrow(() ->
-                        new CredencialesInvalidasException("La sesión no es válida")
-                );
     }
 
     @Transactional(readOnly = true)
