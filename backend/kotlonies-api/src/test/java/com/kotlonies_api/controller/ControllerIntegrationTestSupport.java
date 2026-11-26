@@ -10,6 +10,7 @@ import com.kotlonies_api.repository.ColonyRepository;
 import com.kotlonies_api.repository.IncidenciaRepository;
 import com.kotlonies_api.repository.TareaRepository;
 import com.kotlonies_api.repository.UsuarioRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -60,6 +61,12 @@ public abstract class ControllerIntegrationTestSupport {
                 .apply(SecurityMockMvcConfigurers.springSecurity())
                 .build();
 
+        limpiarBaseDeDatos();
+    }
+
+    // La BD H2 se comparte con el resto de clases de test: no dejamos datos persistidos.
+    @AfterEach
+    void limpiarBaseDeDatos() {
         incidenciaRepository.deleteAll();
         tareaRepository.deleteAll();
         catRepository.deleteAll();
